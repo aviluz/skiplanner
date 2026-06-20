@@ -1,0 +1,84 @@
+{
+  "name": "ExpenseSettlement",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string",
+      "description": "\u05de\u05d6\u05d4\u05d4 \u05d4\u05e7\u05d1\u05d5\u05e6\u05d4"
+    },
+    "from_person": {
+      "type": "string",
+      "description": "\u05de\u05d9 \u05e9\u05d9\u05dc\u05dd (\u05d4\u05d7\u05d6\u05d9\u05e8 \u05d7\u05d5\u05d1)"
+    },
+    "to_person": {
+      "type": "string",
+      "description": "\u05de\u05d9 \u05e7\u05d9\u05d1\u05dc \u05d0\u05ea \u05d4\u05db\u05e1\u05e3"
+    },
+    "amount": {
+      "type": "number",
+      "description": "\u05d4\u05e1\u05db\u05d5\u05dd \u05e9\u05d4\u05d5\u05e2\u05d1\u05e8 (\u05d1\u05de\u05d8\u05d1\u05e2 \u05d4\u05d1\u05e1\u05d9\u05e1 \u05e9\u05dc \u05d4\u05e7\u05d1\u05d5\u05e6\u05d4)"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "description": "\u05ea\u05d9\u05d0\u05d5\u05e8 (\u05e2\u05d3 1000 \u05ea\u05d5\u05d5\u05d9\u05dd)",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "group_id",
+    "from_person",
+    "to_person",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.from_person": "{{user.full_name}}"
+        },
+        {
+          "data.to_person": "{{user.full_name}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "name": "SkiSchool",
+  "type": "object",
+  "properties": {
+    "destination_name": {
+      "type": "string",
+      "description": "\u05e9\u05dd \u05d9\u05e2\u05d3 \u05d4\u05e1\u05e7\u05d9 \u05d4\u05de\u05e9\u05d5\u05d9\u05da"
+    },
+    "school_name": {
+      "type": "string",
+      "description": "\u05e9\u05dd \u05d1\u05d9\u05ea \u05d4\u05e1\u05e4\u05e8 \u05dc\u05e1\u05e7\u05d9"
+    },
+    "booking_url": {
+      "type": "string",
+      "description": "\u05e7\u05d9\u05e9\u05d5\u05e8 \u05dc\u05d4\u05d6\u05de\u05e0\u05d4 \u05d0\u05d5\u05e0\u05dc\u05d9\u05d9\u05df"
+    },
+    "whatsapp_contact": {
+      "type": "string",
+      "description": "\u05e7\u05d9\u05e9\u05d5\u05e8 \u05d5\u05d5\u05d0\u05d8\u05e1\u05d0\u05e4 \u05dc\u05de\u05d3\u05e8\u05d9\u05da (\u05db\u05d5\u05dc\u05dc https://wa.me/...)"
+    },
+    "whatsapp_message": {
+      "type": "string",
+      "description": "\u05d8\u05e7\u05e1\u05d8 \u05d1\u05e8\u05d9\u05e8\u05ea \u05de\u05d7\u05d3\u05dc \u05dc\u05d4\u05d5\u05d3\u05e2\u05ea \u05d5\u05d5\u05d0\u05d8\u05e1\u05d0\u05e4"
+    },
+    "instructor_name": {
+      "type": "string",
+      "description": "\u05e9\u05dd \u05d4\u05de\u05d3\u05e8\u05d9\u05da (\u05d0\u05d5\u05e4\u05e6\u05d9\u05d5\u05e0\u05dc\u05d9)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "\u05d4\u05e2\u05e8\u05d5\u05ea \u05e2\u05dc \u05d1\u05d9\u05ea \u05d4\u05e1\u05e4\u05e8 \u05d0\u05d5 \u05d4\u05de\u05d3\u05e8\u05d9\u05da"
+    }
+  },
+  "required": [
+    "destination_name",
+    "school_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "name": "VipRequest",
+  "type": "object",
+  "properties": {
+    "form_data": {
+      "type": "object",
+      "description": "\u05db\u05dc \u05d4\u05e0\u05ea\u05d5\u05e0\u05d9\u05dd \u05e9\u05d4\u05de\u05e9\u05ea\u05de\u05e9 \u05de\u05d9\u05dc\u05d0 \u05d1\u05d8\u05d5\u05e4\u05e1"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "\u05db\u05ea\u05d5\u05d1\u05ea \u05d4\u05de\u05d9\u05d9\u05dc \u05e9\u05dc \u05d4\u05de\u05e9\u05ea\u05de\u05e9 \u05e9\u05e9\u05dc\u05d7"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "\u05e9\u05dd \u05d4\u05de\u05e9\u05ea\u05de\u05e9 \u05e9\u05e9\u05dc\u05d7"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "new",
+      "description": "\u05e1\u05d8\u05d8\u05d5\u05e1 \u05d4\u05d8\u05d9\u05e4\u05d5\u05dc \u05d1\u05d1\u05e7\u05e9\u05d4"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "\u05d4\u05e2\u05e8\u05d5\u05ea \u05e9\u05dc \u05d4\u05d0\u05d3\u05de\u05d9\u05df \u05e2\u05dc \u05d4\u05d1\u05e7\u05e9\u05d4"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u05d4\u05d0\u05dd \u05d4\u05d1\u05e7\u05e9\u05d4 \u05e0\u05e7\u05e8\u05d0\u05d4 \u05e2\u05dc \u05d9\u05d3\u05d9 \u05de\u05e0\u05d4\u05dc"
+    },
+    "terms_accepted": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u05d4\u05d0\u05dd \u05d4\u05de\u05e9\u05ea\u05de\u05e9 \u05d0\u05d9\u05e9\u05e8 \u05d0\u05ea \u05ea\u05e0\u05d0\u05d9 \u05d4\u05e9\u05d9\u05e8\u05d5\u05ea"
+    },
+    "terms_accepted_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u05ea\u05d0\u05e8\u05d9\u05da \u05d5\u05e9\u05e2\u05ea \u05d0\u05d9\u05e9\u05d5\u05e8 \u05d4\u05ea\u05e0\u05d0\u05d9\u05dd"
+    },
+    "accepted_documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u05de\u05d6\u05d4\u05d9 \u05d4\u05de\u05e1\u05de\u05db\u05d9\u05dd \u05e9\u05d0\u05d5\u05e9\u05e8\u05d5 \u05e2\u05dc \u05d9\u05d3\u05d9 \u05d4\u05de\u05e9\u05ea\u05de\u05e9"
+    },
+    "description": {
+      "type": "string",
+      "description": "\u05ea\u05d9\u05d0\u05d5\u05e8 (\u05e2\u05d3 1000 \u05ea\u05d5\u05d5\u05d9\u05dd)",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "form_data"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
