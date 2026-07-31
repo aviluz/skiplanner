@@ -1,8 +1,8 @@
 const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,15 +12,16 @@ import { toast as sonnerToast } from "sonner";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 
 export default function ArticlePage() {
-  const urlParams = new URLSearchParams(window.location.search);
+  const location = useLocation();
+  const urlParams = new URLSearchParams(location.search);
   const slug = urlParams.get("slug");
   const id = urlParams.get("id");
 
   const [article, setArticle] = useState(null);
   const [related, setRelated] = useState([]);
   const [toc, setToc] = useState([]);
+  const [processedContent, setProcessedContent] = useState("");
   const [loading, setLoading] = useState(true);
-  const contentRef = useRef(null);
 
   useEffect(() => {
     loadArticle();
@@ -28,6 +29,7 @@ export default function ArticlePage() {
 
   const loadArticle = async () => {
     setLoading(true);
+    window.scrollTo(0, 0);
     try {
       let found = null;
       if (id) {
@@ -39,8 +41,21 @@ export default function ArticlePage() {
       }
       if (found) {
         setArticle(found);
-        const relatedData = await db.entities.BlogArticle.filter({ category: found.category, status: "published" });
-        setRelated(relatedData.filter((a) => a.id !== found.id).slice(0, 3));
+        // Prefer manually linked articles; fall back to same-category articles
+        const linkedIds = (found.related_article_ids || []).filter((id) => id && id !== found.id);
+        let relatedData = [];
+        if (linkedIds.length > 0) {
+          const linked = await Promise.all(
+            linkedIds.map((rid) => db.entities.BlogArticle.filter({ id: rid }).then((r) => r?.[0] || null).catch(() => null))
+          );
+          relatedData = linked.filter((a) => a && a.status === "published");
+        }
+        if (relatedData.length < 3) {
+          const byCat = await db.entities.BlogArticle.filter({ category: found.category, status: "published" });
+          const fillers = byCat.filter((a) => a.id !== found.id && !relatedData.some((r) => r.id === a.id));
+          relatedData = [...relatedData, ...fillers].slice(0, 3);
+        }
+        setRelated(relatedData);
       }
     } catch (e) {
       console.error(e);
@@ -49,28 +64,25 @@ export default function ArticlePage() {
     }
   };
 
-  // Build table of contents from H2 headings in the content
+  // Build table of contents AND inject IDs into the HTML content in one pass
+  // (baking IDs into the HTML string ensures they survive re-renders)
   useEffect(() => {
-    if (!article?.content) return;
+    if (!article?.content) {
+      setToc([]);
+      setProcessedContent("");
+      return;
+    }
     const parser = new DOMParser();
     const doc = parser.parseFromString(article.content, "text/html");
     const headings = Array.from(doc.querySelectorAll("h2"));
-    const tocItems = headings.map((h, i) => ({
-      id: `heading-${i}`,
-      text: h.textContent,
-    }));
-    setToc(tocItems);
-  }, [article]);
-
-  // Inject IDs into rendered H2 headings
-  useEffect(() => {
-    if (!contentRef.current || toc.length === 0) return;
-    const h2s = contentRef.current.querySelectorAll("h2");
-    h2s.forEach((el, i) => {
-      el.id = `heading-${i}`;
-      el.style.scrollMarginTop = "80px";
+    const tocItems = headings.map((h, i) => {
+      h.id = `heading-${i}`;
+      h.setAttribute("data-toc", "true");
+      return { id: `heading-${i}`, text: h.textContent };
     });
-  }, [article, toc]);
+    setToc(tocItems);
+    setProcessedContent(doc.body.innerHTML);
+  }, [article]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -163,7 +175,6 @@ export default function ArticlePage() {
 
             {/* Article body */}
             <div
-              ref={contentRef}
               className="article-content"
               dir="rtl"
               style={{
@@ -174,7 +185,7 @@ export default function ArticlePage() {
                 direction: "rtl",
                 textAlign: "right",
               }}
-              dangerouslySetInnerHTML={{ __html: article.content }}
+              dangerouslySetInnerHTML={{ __html: processedContent || article.content }}
             />
 
             <style>{`
@@ -185,6 +196,7 @@ export default function ArticlePage() {
                 color: #1e293b;
                 margin-top: 2rem;
                 margin-bottom: 1rem;
+                scroll-margin-top: 80px;
               }
               .article-content h3 {
                 font-size: 1.25rem;
@@ -241,12 +253,17 @@ export default function ArticlePage() {
                 <Card className="border-0 shadow-md">
                   <CardContent className="p-4">
                     <p className="font-semibold text-slate-700 mb-3 text-sm">תוכן עניינים</p>
-                    <ul className="space-y-2">
+                    <ul className="space-y-2 max-h-80 overflow-y-auto pl-1">
                       {toc.map((item) => (
                         <li key={item.id}>
                           <a
                             href={`#${item.id}`}
-                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline block leading-tight"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const el = document.getElementById(item.id);
+                              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }}
+                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline block leading-tight cursor-pointer"
                           >
                             {item.text}
                           </a>

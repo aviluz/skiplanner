@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { transitionGuestToUser } from "@/lib/guestTripMigration";
 import { Ticket, ArrowLeft, CheckCircle2, Info, AlertCircle, AlertTriangle, PartyPopper } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -43,6 +44,12 @@ export default function SkiPassNotice() {
     const urlParams = new URLSearchParams(window.location.search);
     const tripId = urlParams.get('tripId');
     const guestMode = urlParams.get('guest') === '1';
+
+    // אם המשתמש התחבר בינתיים — נמיר את הטיוטה לטיול אמיתי ונעבור למצב מחובר
+    if (guestMode) {
+      const migrated = await transitionGuestToUser(navigate, 'SkiPassNotice');
+      if (migrated) return;
+    }
 
     // מצב אורח
     if (guestMode || !tripId) {

@@ -1,0 +1,85 @@
+{
+  "name": "BlogArticle",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "\u05db\u05d5\u05ea\u05e8\u05ea \u05d4\u05de\u05d0\u05de\u05e8"
+    },
+    "slug": {
+      "type": "string",
+      "description": "\u05db\u05ea\u05d5\u05d1\u05ea URL \u05d9\u05d3\u05d9\u05d3\u05d5\u05ea\u05d9\u05ea (\u05d1\u05d0\u05e0\u05d2\u05dc\u05d9\u05ea)"
+    },
+    "excerpt": {
+      "type": "string",
+      "description": "\u05ea\u05e7\u05e6\u05d9\u05e8 \u05e7\u05e6\u05e8 \u05e9\u05d9\u05d5\u05e4\u05d9\u05e2 \u05d1\u05db\u05e8\u05d8\u05d9\u05e1 \u05d4\u05de\u05d0\u05de\u05e8"
+    },
+    "content": {
+      "type": "string",
+      "description": "\u05ea\u05d5\u05db\u05df \u05d4\u05de\u05d0\u05de\u05e8 \u05d4\u05de\u05dc\u05d0 (HTML)"
+    },
+    "featured_image_url": {
+      "type": "string",
+      "description": "\u05ea\u05de\u05d5\u05e0\u05d4 \u05e8\u05d0\u05e9\u05d9\u05ea \u05e9\u05dc \u05d4\u05de\u05d0\u05de\u05e8"
+    },
+    "featured_image_alt": {
+      "type": "string",
+      "description": "\u05d8\u05e7\u05e1\u05d8 \u05d0\u05dc\u05d8 \u05dc\u05ea\u05de\u05d5\u05e0\u05d4 \u05d4\u05e8\u05d0\u05e9\u05d9\u05ea"
+    },
+    "category": {
+      "type": "string",
+      "description": "\u05e7\u05d8\u05d2\u05d5\u05e8\u05d9\u05d4 / \u05d8\u05d0\u05d1 \u05e9\u05d0\u05dc\u05d9\u05d5 \u05e9\u05d9\u05d9\u05da \u05d4\u05de\u05d0\u05de\u05e8"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published"
+      ],
+      "default": "draft",
+      "description": "\u05e1\u05d8\u05d8\u05d5\u05e1 \u05d4\u05de\u05d0\u05de\u05e8"
+    },
+    "meta_title": {
+      "type": "string",
+      "description": "Meta Title \u05dc\u05d2\u05d5\u05d2\u05dc (\u05e2\u05d3 60 \u05ea\u05d5\u05d5\u05d9\u05dd)"
+    },
+    "meta_description": {
+      "type": "string",
+      "description": "Meta Description \u05dc\u05d2\u05d5\u05d2\u05dc (\u05e2\u05d3 155 \u05ea\u05d5\u05d5\u05d9\u05dd)"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u05ea\u05d0\u05e8\u05d9\u05da \u05e4\u05e8\u05e1\u05d5\u05dd"
+    },
+    "related_article_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u05de\u05d6\u05d4\u05d9 \u05de\u05d0\u05de\u05e8\u05d9\u05dd \u05de\u05e7\u05d5\u05e9\u05e8\u05d9\u05dd \u05dc\u05d4\u05e6\u05d2\u05d4 \u05d1'\u05db\u05ea\u05d1\u05d5\u05ea \u05e0\u05d5\u05e1\u05e4\u05d5\u05ea'"
+    }
+  },
+  "required": [
+    "title",
+    "content"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

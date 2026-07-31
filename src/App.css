@@ -1,4 +1,10 @@
-Help me improve my app's search visibility. My current score is 86/100 with 2 issue(s). Do not edit index.html; meta tags are injected by the platform.
-
-Tasks you can apply directly:
-1. Add an optional "description" string field (up to 1000 characters) to each of these entities: FAQ. Do not modify entities that already have a description, summary, content, body, text, bio, or about field.
+{destination.total_piste_km && (
+  <div className="text-sm text-slate-700 mt-2">
+    <span className="font-semibold">סה"כ מסלולים:</span> {destination.total_piste_km} ק"מ
+    <div className="flex gap-2 mt-1">
+      {destination.blue_piste_km && <Badge variant="secondary" className="bg-blue-100 text-blue-800">כחול: {destination.blue_piste_km}</Badge>}
+      {destination.red_piste_km && <Badge variant="secondary" className="bg-red-100 text-red-800">אדום: {destination.red_piste_km}</Badge>}
+      {destination.black_piste_km && <Badge variant="secondary" className="bg-slate-800 text-white">שחור: {destination.black_piste_km}</Badge>}
+    </div>
+  </div>
+)}

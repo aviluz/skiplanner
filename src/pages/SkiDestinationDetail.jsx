@@ -36,8 +36,7 @@ import {
   MountainSnow,
   Utensils,
   Phone,
-  Navigation,
-  Bed
+  Navigation
 } from "lucide-react";
 import {
   Select,
@@ -48,6 +47,7 @@ import {
 } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import DestinationMap from "@/components/DestinationMap";
 
 // Helper function to extract YouTube video ID
 const getYouTubeVideoId = (url) => {
@@ -245,17 +245,19 @@ const ReviewItem = ({ review }) => {
 };
 
 const PisteVisualization = ({ blueKm, redKm, blackKm, totalKm }) => {
-  if (!totalKm || totalKm === 0) return null;
+  // אם total_piste_km חסר/0 אך קיימים נתוני כחול/אדום/שחור — נחשב את הסה"כ מהם
+  const computedTotal = totalKm || (blueKm + redKm + blackKm);
+  if (!computedTotal) return null;
 
-  const bluePercent = (blueKm / totalKm) * 100;
-  const redPercent = (redKm / totalKm) * 100;
-  const blackPercent = (blackKm / totalKm) * 100;
+  const bluePercent = computedTotal > 0 ? (blueKm / computedTotal) * 100 : 0;
+  const redPercent = computedTotal > 0 ? (redKm / computedTotal) * 100 : 0;
+  const blackPercent = computedTotal > 0 ? (blackKm / computedTotal) * 100 : 0;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between text-sm">
         <span className="font-semibold text-slate-800">התפלגות מסלולים</span>
-        <span className="text-slate-500">{totalKm} ק"מ סה"כ</span>
+        <span className="text-slate-500">{computedTotal} ק"מ סה"כ</span>
       </div>
 
       <div className="relative h-8 bg-slate-100 rounded-full overflow-hidden shadow-inner">
@@ -662,7 +664,10 @@ export default function SkiDestinationDetail() {
                     </div>
                   )}
 
-                {destination.total_piste_km && (
+                {(destination.total_piste_km > 0 ||
+                  destination.blue_piste_km > 0 ||
+                  destination.red_piste_km > 0 ||
+                  destination.black_piste_km > 0) && (
                   <div className="flex items-start gap-3">
                     <TrendingUp className="w-5 h-5 text-blue-500 mt-0.5" />
                     <div className="w-full">
@@ -670,7 +675,7 @@ export default function SkiDestinationDetail() {
                         blueKm={destination.blue_piste_km || 0}
                         redKm={destination.red_piste_km || 0}
                         blackKm={destination.black_piste_km || 0}
-                        totalKm={destination.total_piste_km}
+                        totalKm={destination.total_piste_km || 0}
                       />
                     </div>
                   </div>
@@ -705,18 +710,6 @@ export default function SkiDestinationDetail() {
                 )}
 
                 <div className="pt-4 space-y-2 border-t">
-                  {(() => {
-                    const searchName = destination.name_en || destination.name;
-                    const airbnbUrl = `https://www.airbnb.com/s/${encodeURIComponent(searchName)}/homes`;
-                    return (
-                      <Button variant="outline" className="w-full" asChild>
-                        <a href={airbnbUrl} target="_blank" rel="noopener noreferrer">
-                          <Bed className="w-4 h-4 ml-2" />
-                          חפש לינה ב-Airbnb
-                        </a>
-                      </Button>
-                    );
-                  })()}
                   <Link
                     to={createPageUrl(
                       `PlanTrip?destination=${encodeURIComponent(
@@ -749,6 +742,38 @@ export default function SkiDestinationDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* מפת מיקום גיאוגרפי */}
+            {destination.latitude != null && destination.longitude != null && (
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-6 h-6 text-blue-600" />
+                    מיקום גיאוגרפי
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+                    <Navigation className="w-4 h-4 text-blue-500" />
+                    <span>
+                      {destination.latitude.toFixed(4)}, {destination.longitude.toFixed(4)}
+                    </span>
+                    {destination.nearest_airport && (
+                      <Badge variant="outline" className="text-blue-700 border-blue-300 bg-blue-50 mr-2">
+                        {destination.nearest_airport}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="h-72 rounded-lg overflow-hidden border border-slate-200">
+                    <DestinationMap
+                      latitude={destination.latitude}
+                      longitude={destination.longitude}
+                      name={destination.name}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* YouTube Video Card */}
             {youtubeVideoId && (

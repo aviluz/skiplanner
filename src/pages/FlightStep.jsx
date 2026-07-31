@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { transitionGuestToUser } from "@/lib/guestTripMigration";
 import { format } from "date-fns";
 import {
   Plane,
@@ -66,6 +67,12 @@ export default function FlightStep() {
     const urlParams = new URLSearchParams(window.location.search);
     const tripId = urlParams.get('tripId');
     const guestMode = urlParams.get('guest') === '1';
+
+    // אם המשתמש התחבר בינתיים — נמיר את הטיוטה לטיול אמיתי ונעבור למצב מחובר
+    if (guestMode) {
+      const migrated = await transitionGuestToUser(navigate, 'FlightStep');
+      if (migrated) return;
+    }
 
     // בדיקת משתמש מחובר
     try {

@@ -31,18 +31,22 @@ export default function VipNotificationBell({ user }) {
 
   const loadNotifications = async () => {
     try {
-      const vipRequests = await db.entities.VipRequest.filter({ is_read: false }).catch(() => []);
-      const feedbacks = await db.entities.Feedback.filter({ is_read: false }).catch(() => []);
-      
-      const totalUnread = vipRequests.length + feedbacks.length;
+      const [vipRequests, feedbacks, pendingTestimonials] = await Promise.all([
+        db.entities.VipRequest.filter({ is_read: false }).catch(() => []),
+        db.entities.Feedback.filter({ is_read: false }).catch(() => []),
+        db.entities.Testimonial.filter({ status: "pending" }).catch(() => []),
+      ]);
+
+      const totalUnread = vipRequests.length + feedbacks.length + pendingTestimonials.length;
       setUnreadCount(totalUnread);
-      
+
       // Combine and sort by date
       const combined = [
         ...vipRequests.map(r => ({ ...r, type: 'vip' })),
-        ...feedbacks.map(f => ({ ...f, type: 'feedback' }))
+        ...feedbacks.map(f => ({ ...f, type: 'feedback' })),
+        ...pendingTestimonials.map(t => ({ ...t, type: 'testimonial' }))
       ].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-      
+
       setRecentItems(combined.slice(0, 5));
     } catch (error) {
       console.error('Error loading notifications:', error);
@@ -53,9 +57,10 @@ export default function VipNotificationBell({ user }) {
     try {
       if (item.type === 'vip') {
         await db.entities.VipRequest.update(item.id, { is_read: true });
-      } else {
+      } else if (item.type === 'feedback') {
         await db.entities.Feedback.update(item.id, { is_read: true });
       }
+      // testimonials: no is_read field — they remain until approved/rejected in the admin panel
       await loadNotifications();
     } catch (error) {
       console.error('Error marking as read:', error);
@@ -98,17 +103,21 @@ export default function VipNotificationBell({ user }) {
                       <p className="font-medium text-sm">
                         {item.type === 'vip' 
                           ? `VIP: ${item.user_name || 'אורח'}` 
+                          : item.type === 'testimonial'
+                          ? `המלצה: ${item.name || 'משתמש'}`
                           : `משוב: ${item.created_by?.split('@')[0] || 'משתמש'}`}
                       </p>
                       <Badge 
                         variant="secondary" 
-                        className={`text-xs ${item.type === 'vip' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800'}`}
+                        className={`text-xs ${item.type === 'vip' ? 'bg-pink-100 text-pink-800' : item.type === 'testimonial' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}
                       >
-                        {item.type === 'vip' ? 'VIP' : 'משוב'}
+                        {item.type === 'vip' ? 'VIP' : item.type === 'testimonial' ? 'המלצה' : 'משוב'}
                       </Badge>
                     </div>
                     {item.type === 'vip' ? (
                       <p className="text-xs text-slate-600">{item.user_email}</p>
+                    ) : item.type === 'testimonial' ? (
+                      <p className="text-xs text-slate-600 line-clamp-2">{item.text}</p>
                     ) : (
                       <p className="text-xs text-slate-600 line-clamp-2">{item.content}</p>
                     )}

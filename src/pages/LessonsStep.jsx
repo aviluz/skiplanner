@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { transitionGuestToUser } from "@/lib/guestTripMigration";
 import {
   GraduationCap,
   ArrowLeft,
@@ -56,6 +57,12 @@ export default function LessonsStep() {
     const urlParams = new URLSearchParams(window.location.search);
     const tripId = urlParams.get('tripId');
     const guestMode = urlParams.get('guest') === '1';
+
+    // אם המשתמש התחבר בינתיים — נמיר את הטיוטה לטיול אמיתי ונעבור למצב מחובר
+    if (guestMode) {
+      const migrated = await transitionGuestToUser(navigate, 'LessonsStep');
+      if (migrated) return;
+    }
 
     // מצב אורח
     if (guestMode || !tripId) {

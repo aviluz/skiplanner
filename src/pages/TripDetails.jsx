@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Toaster, toast } from 'react-hot-toast';
+import BudgetCalculator from "@/components/BudgetCalculator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -426,7 +427,7 @@ export default function TripDetails() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-between bg-white p-3 rounded-lg">
-                    <span className="font-semibold text-lg text-slate-800">
+                    <span className="font-semibold text-lg text-slate-800" dir="ltr">
                       {trip.departure_date ? format(new Date(trip.departure_date), 'dd/MM/yyyy') : 'לא נקבע'}
                       {" → "}
                       {trip.return_date ? format(new Date(trip.return_date), 'dd/MM/yyyy') : 'לא נקבע'}
@@ -526,6 +527,8 @@ export default function TripDetails() {
 
           {/* Sharing Section - Takes 1 column */}
           <div className="space-y-4">
+            <BudgetCalculator trip={trip} onTripUpdate={setTrip} />
+
             <Card className="shadow-xl border-t-4 border-indigo-500">
               <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b-2 border-indigo-100 pb-4">
                 <CardTitle className="flex items-center gap-2 text-2xl">

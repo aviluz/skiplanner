@@ -1,0 +1,40 @@
+{
+  "name": "TripPreparation",
+  "type": "object",
+  "properties": {
+    "setting_key": {
+      "type": "string",
+      "description": "\u05de\u05e4\u05ea\u05d7 \u05d4\u05d4\u05d2\u05d3\u05e8\u05d4 - \u05ea\u05de\u05d9\u05d3 'trip_preparation'",
+      "default": "trip_preparation"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "\u05e7\u05d9\u05e9\u05d5\u05e8 \u05dc\u05e1\u05e8\u05d8\u05d5\u05df \u05d9\u05d5\u05d8\u05d9\u05d5\u05d1 (\u05db\u05d5\u05dc\u05dc \u05d0\u05d5 \u05de\u05d6\u05d4\u05d4 \u05d4\u05e1\u05e8\u05d8\u05d5\u05df \u05d1\u05dc\u05d1\u05d3)"
+    },
+    "content": {
+      "type": "string",
+      "description": "\u05ea\u05d5\u05db\u05df \u05d8\u05e7\u05e1\u05d8\u05d5\u05d0\u05dc\u05d9 \u05dc\u05d4\u05db\u05e0\u05d4 \u05dc\u05d7\u05d5\u05e4\u05e9\u05d4 (\u05ea\u05de\u05d9\u05db\u05d4 \u05d1-Markdown)"
+    }
+  },
+  "required": [
+    "setting_key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

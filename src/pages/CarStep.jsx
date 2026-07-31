@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { transitionGuestToUser } from "@/lib/guestTripMigration";
 import { ArrowLeft, ArrowRight, Car, ExternalLink, CheckCircle2, Info, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -42,6 +43,12 @@ export default function CarStep() {
     const urlParams = new URLSearchParams(window.location.search);
     const tripId = urlParams.get('tripId');
     const guestMode = urlParams.get('guest') === '1';
+
+    // אם המשתמש התחבר בינתיים — נמיר את הטיוטה לטיול אמיתי ונעבור למצב מחובר
+    if (guestMode) {
+      const migrated = await transitionGuestToUser(navigate, 'CarStep');
+      if (migrated) return;
+    }
 
     // טעינת ספקים
     let providers = [];

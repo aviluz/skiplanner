@@ -13,8 +13,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Search, Eye, EyeOff, Upload, FileText } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, EyeOff, Upload, FileText, Link2 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
@@ -291,6 +292,64 @@ export default function ArticlesManager({ onFileUpload }) {
               </div>
               <Textarea value={editing.meta_description || ""} onChange={(e) => setEditing((p) => ({ ...p, meta_description: e.target.value }))} maxLength={165} rows={2} placeholder="תיאור לתוצאות החיפוש של גוגל" />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Related Articles */}
+        <Card className="border-0 shadow-xl border-l-4 border-l-purple-500">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Link2 className="w-5 h-5 text-purple-600" />
+              כתבות נוספות לקישור
+            </CardTitle>
+            <p className="text-sm text-slate-500">
+              בחר מאמרים שיופיעו בתחתית המאמר תחת "כתבות נוספות שעשויות לעניין אותך". אם לא נבחרו, יוצגו אוטומטית מאמרים מאותה קטגוריה.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {articles.length <= 1 ? (
+              <p className="text-sm text-slate-400 text-center py-4">אין עדיין מאמרים אחרים לקישור.</p>
+            ) : (
+              <div className="max-h-72 overflow-y-auto space-y-1 border rounded-lg p-3 bg-slate-50">
+                {articles
+                  .filter((a) => a.id !== editing.id)
+                  .map((a) => {
+                    const checked = (editing.related_article_ids || []).includes(a.id);
+                    return (
+                      <label
+                        key={a.id}
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-white cursor-pointer transition-colors"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(val) =>
+                            setEditing((prev) => ({
+                              ...prev,
+                              related_article_ids: val
+                                ? [...(prev.related_article_ids || []), a.id]
+                                : (prev.related_article_ids || []).filter((id) => id !== a.id),
+                            }))
+                          }
+                        />
+                        <span className="flex-1 min-w-0">
+                          <span className="font-medium text-slate-800 text-sm block truncate">{a.title}</span>
+                          {a.category && (
+                            <span className="text-xs text-slate-400">{a.category}</span>
+                          )}
+                        </span>
+                        <Badge variant={a.status === "published" ? "default" : "secondary"} className={a.status === "published" ? "bg-green-600 text-xs" : "text-xs"}>
+                          {a.status === "published" ? "פורסם" : "טיוטה"}
+                        </Badge>
+                      </label>
+                    );
+                  })}
+              </div>
+            )}
+            {(editing.related_article_ids || []).length > 0 && (
+              <p className="text-xs text-slate-500 mt-2">
+                נבחרו {(editing.related_article_ids || []).length} מאמרים מקושרים
+              </p>
+            )}
           </CardContent>
         </Card>
 

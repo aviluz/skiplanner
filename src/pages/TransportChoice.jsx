@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { transitionGuestToUser } from "@/lib/guestTripMigration";
 import { format } from "date-fns";
 import {
   Car,
@@ -64,6 +65,12 @@ export default function TransportChoice() {
     const urlParams = new URLSearchParams(window.location.search);
     const tripId = urlParams.get('tripId');
     const guestMode = urlParams.get('guest') === '1';
+
+    // אם המשתמש התחבר בינתיים — נמיר את הטיוטה לטיול אמיתי ונעבור למצב מחובר
+    if (guestMode) {
+      const migrated = await transitionGuestToUser(navigate, 'TransportChoice');
+      if (migrated) return;
+    }
 
     // מצב אורח - טעינה מ-localStorage
     if (guestMode || !tripId) {

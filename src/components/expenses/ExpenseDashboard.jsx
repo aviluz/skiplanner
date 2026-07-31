@@ -11,21 +11,21 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue } from
+"@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter } from
+"@/components/ui/dialog";
 import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from "@/components/ui/tabs";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger } from
+"@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -33,8 +33,8 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow } from
+"@/components/ui/table";
 import { toast } from "sonner";
 import {
   Plus,
@@ -57,9 +57,13 @@ import {
   AlertTriangle,
   Loader2,
   Download,
-} from "lucide-react";
+  Share2,
+  Mail,
+  ShieldCheck } from
+"lucide-react";
 import { format } from "date-fns";
 import ExportDialog from "./ExportDialog";
+import ExpensePieChart from "./ExpensePieChart";
 
 const CATEGORY_ICONS = {
   "כללי": Wallet,
@@ -68,17 +72,76 @@ const CATEGORY_ICONS = {
   "תחבורה": Bus,
   "אטרקציות": Ticket,
   "ציוד": ShoppingBag,
-  "טיסות": Plane,
+  "טיסות": Plane
 };
 
-const CURRENCY_SYMBOLS = {
-  ILS: "₪",
-  USD: "$",
-  EUR: "€",
-  GBP: "£",
-};
+// רשימת מטבעות רחבה — הנפוצים בראש, לאחר מכן שאר המטבעות המקובלים בעולם
+const CURRENCIES = [
+{ code: "ILS", name: "שקל", symbol: "₪" },
+{ code: "EUR", name: "יורו", symbol: "€" },
+{ code: "USD", name: "דולר אמריקאי", symbol: "$" },
+{ code: "GBP", name: "לירה שטרלינג", symbol: "£" },
+{ code: "CHF", name: "פרנק שוויצרי", symbol: "₣" },
+{ code: "JPY", name: "ין יפני", symbol: "¥" },
+{ code: "CNY", name: "יואן סיני", symbol: "¥" },
+{ code: "AUD", name: "דולר אוסטרלי", symbol: "A$" },
+{ code: "CAD", name: "דולר קנדי", symbol: "C$" },
+{ code: "NZD", name: "דולר ניו זילנדי", symbol: "NZ$" },
+{ code: "SEK", name: "כתר שוודי", symbol: "kr" },
+{ code: "NOK", name: "כתר נורווגי", symbol: "kr" },
+{ code: "DKK", name: "כתר דני", symbol: "kr" },
+{ code: "AED", name: "דירהם אמירתי", symbol: "د.إ" },
+{ code: "SAR", name: "ריאל סעודי", symbol: "﷼" },
+{ code: "TRY", name: "לירה טורקית", symbol: "₺" },
+{ code: "RUB", name: "רובל רוסי", symbol: "₽" },
+{ code: "INR", name: "רופי הודי", symbol: "₹" },
+{ code: "HKD", name: "דולר הונג קונגי", symbol: "HK$" },
+{ code: "SGD", name: "דולר סינגפורי", symbol: "S$" },
+{ code: "THB", name: "באט תאילנדי", symbol: "฿" },
+{ code: "ZAR", name: "ראנד דרום אפריקאי", symbol: "R" },
+{ code: "BRL", name: "ריאל ברזילאי", symbol: "R$" },
+{ code: "MXN", name: "פזו מקסיקני", symbol: "Mex$" },
+{ code: "PLN", name: "זלוטי פולני", symbol: "zł" },
+{ code: "CZK", name: "קורונה צ'כית", symbol: "Kč" },
+{ code: "HUF", name: "פורינט הונגרי", symbol: "Ft" },
+{ code: "RON", name: "ליי רומני", symbol: "lei" },
+{ code: "BGN", name: "לב בולגרי", symbol: "лв" },
+{ code: "ISK", name: "כתר איסלנדי", symbol: "kr" },
+{ code: "UAH", name: "ריבנה אוקראיני", symbol: "₴" },
+{ code: "KRW", name: "וון דרום קוריאני", symbol: "₩" },
+{ code: "IDR", name: "רופיה אינדונזית", symbol: "Rp" },
+{ code: "MYR", name: "רינגיט מלזי", symbol: "RM" },
+{ code: "PHP", name: "פזו פיליפיני", symbol: "₱" },
+{ code: "GEL", name: "לארי גיאורגי", symbol: "₾" },
+{ code: "AMD", name: "דראם ארמני", symbol: "֏" },
+{ code: "RSD", name: "דינר סרבי", symbol: "din" },
+{ code: "ALL", name: "לק אלבני", symbol: "L" },
+{ code: "BAM", name: "מארק בוסני", symbol: "KM" },
+{ code: "MKD", name: "דנר מקדוני", symbol: "ден" },
+{ code: "KZT", name: "טנגה קזחית", symbol: "₸" },
+{ code: "EGP", name: "לירה מצרית", symbol: "E£" },
+{ code: "JOD", name: "דינר ירדני", symbol: "JD" },
+{ code: "ARS", name: "פסו ארגנטינאי", symbol: "AR$" },
+{ code: "CLP", name: "פסו צ'יליאני", symbol: "CLP$" },
+{ code: "COP", name: "פסו קולומביאני", symbol: "CO$" },
+{ code: "PEN", name: "סול פרואני", symbol: "S/" },
+{ code: "VND", name: "דונג וייטנאמי", symbol: "₫" },
+{ code: "PKR", name: "רופי פקיסטני", symbol: "Rs" },
+{ code: "BDT", name: "טקה בנגלדשית", symbol: "৳" },
+{ code: "NGN", name: "נאירה ניגרית", symbol: "₦" },
+{ code: "KES", name: "שילינג קנייתי", symbol: "KSh" },
+{ code: "MAD", name: "דירהם מרוקאי", symbol: "DH" }];
 
-export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
+const CURRENCY_SYMBOLS = CURRENCIES.reduce((acc, c) => {
+  acc[c.code] = c.symbol;
+  return acc;
+}, {});
+
+// נרמול שם קטגוריה להשוואה ללא כפילויות: trim + רווחים כפולים → יחיד + אותיות קטנות
+const normalizeCategory = (c) =>
+  (c || "").trim().replace(/\s+/g, " ").toLowerCase();
+
+export default function ExpenseDashboard({ group, onGroupDeleted, onGroupUpdated, user }) {
   const [expenses, setExpenses] = useState([]);
   const [settlements, setSettlements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,6 +149,11 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
   const [participants, setParticipants] = useState(group.participants || []);
   const [isAddParticipantOpen, setIsAddParticipantOpen] = useState(false);
   const [newParticipantName, setNewParticipantName] = useState("");
+
+  // Sharing state
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [shareEmail, setShareEmail] = useState("");
+  const [sharedEmails, setSharedEmails] = useState(group.shared_with_emails || []);
 
   // Add/Edit Expense Form
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
@@ -95,20 +163,21 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
     amount: "",
     currency: group.base_currency,
     exchange_rate: "1",
-    payer_name: (group.participants && group.participants[0]) || "",
+    payer_name: group.participants && group.participants[0] || "",
     beneficiaries: group.participants || [],
     category: "כללי",
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toISOString().split("T")[0]
   });
   const [isRateManual, setIsRateManual] = useState(false);
   const [fetchingRate, setFetchingRate] = useState(false);
+  const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
 
   // Settle Debt Form
   const [isSettleOpen, setIsSettleOpen] = useState(false);
   const [settleData, setSettleData] = useState({
     from: "",
     to: "",
-    amount: "",
+    amount: ""
   });
 
   // Edit Settlement Form
@@ -118,7 +187,7 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
     from_person: "",
     to_person: "",
     amount: "",
-    date: "",
+    date: ""
   });
 
   // Export Dialog
@@ -145,20 +214,20 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
       setFetchingRate(true);
       try {
         const expenseDate = newExpense.date || new Date().toISOString().split("T")[0];
-        
+
         // API שתומך בשערים היסטוריים
         const res = await fetch(
           `https://api.exchangerate-api.com/v4/latest/${newExpense.currency}`
         );
-        
+
         if (!res.ok) throw new Error("Failed to fetch rate");
         const data = await res.json();
         const rate = data?.rates?.[group.base_currency];
-        
+
         if (rate) {
           setNewExpense((prev) => ({
             ...prev,
-            exchange_rate: rate.toFixed(4),
+            exchange_rate: rate.toFixed(4)
           }));
         } else {
           throw new Error("Rate not found");
@@ -178,9 +247,9 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
     setLoading(true);
     try {
       const [expensesData, settlementsData] = await Promise.all([
-        db.entities.GroupExpense.filter({ group_id: group.id }, "-date", 100),
-        db.entities.ExpenseSettlement.filter({ group_id: group.id }, "-date", 100),
-      ]);
+      db.entities.GroupExpense.filter({ group_id: group.id }, "-date", 100),
+      db.entities.ExpenseSettlement.filter({ group_id: group.id }, "-date", 100)]
+      );
       setExpenses(expensesData);
       setSettlements(settlementsData);
     } catch (error) {
@@ -200,14 +269,29 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
     return match || participants[0] || "";
   }, [user, participants]);
 
+  // רשימת הקטגוריות הזמינות: ברירות מחדל + קטגוריות שכבר נוצלו בהוצאות הקבוצה,
+  // ללא כפילויות (התעלמות מרווחים/אותיות גדולות-קטנות). מאפשר שימוש חוזר בקטגוריות חופשיות.
+  const availableCategories = useMemo(() => {
+    const ordered = [...Object.keys(CATEGORY_ICONS)];
+    expenses.forEach((e) => {
+      if (e.category && !ordered.includes(e.category)) ordered.push(e.category);
+    });
+    const seen = new Map();
+    ordered.forEach((c) => {
+      const key = normalizeCategory(c);
+      if (!seen.has(key)) seen.set(key, c);
+    });
+    return Array.from(seen.values());
+  }, [expenses]);
+
   const balances = useMemo(() => {
     const bals = {};
-    participants.forEach((p) => (bals[p] = 0));
+    participants.forEach((p) => bals[p] = 0);
 
     // הוצאות
     expenses.forEach((exp) => {
       const amount =
-        exp.amount_in_base || exp.amount * (exp.exchange_rate || 1);
+      exp.amount_in_base || exp.amount * (exp.exchange_rate || 1);
       const payer = exp.payer_name;
       const beneficiaries = exp.beneficiaries || [];
 
@@ -242,15 +326,15 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
       curBalances[p] = Math.round(curBalances[p] * 100) / 100;
     });
 
-    let debtors = Object.keys(curBalances)
-      .filter((p) => curBalances[p] < -0.01)
-      .map((p) => ({ name: p, amount: curBalances[p] }))
-      .sort((a, b) => a.amount - b.amount);
+    let debtors = Object.keys(curBalances).
+    filter((p) => curBalances[p] < -0.01).
+    map((p) => ({ name: p, amount: curBalances[p] })).
+    sort((a, b) => a.amount - b.amount);
 
-    let creditors = Object.keys(curBalances)
-      .filter((p) => curBalances[p] > 0.01)
-      .map((p) => ({ name: p, amount: curBalances[p] }))
-      .sort((a, b) => b.amount - a.amount);
+    let creditors = Object.keys(curBalances).
+    filter((p) => curBalances[p] > 0.01).
+    map((p) => ({ name: p, amount: curBalances[p] })).
+    sort((a, b) => b.amount - a.amount);
 
     let i = 0;
     let j = 0;
@@ -265,7 +349,7 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
         debts.push({
           from: debtor.name,
           to: creditor.name,
-          amount: amount,
+          amount: amount
         });
       }
 
@@ -286,9 +370,9 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
   const totalSpent = useMemo(() => {
     return expenses.reduce(
       (sum, exp) =>
-        sum +
-        (exp.amount_in_base ||
-          exp.amount * (exp.exchange_rate || 1)),
+      sum + (
+      exp.amount_in_base ||
+      exp.amount * (exp.exchange_rate || 1)),
       0
     );
   }, [expenses]);
@@ -297,8 +381,8 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
   const myTotalSpent = useMemo(() => {
     return expenses.reduce((sum, exp) => {
       const amountBase =
-        exp.amount_in_base ||
-        exp.amount * (exp.exchange_rate || 1);
+      exp.amount_in_base ||
+      exp.amount * (exp.exchange_rate || 1);
       return exp.payer_name === currentUserName ? sum + amountBase : sum;
     }, 0);
   }, [expenses, currentUserName]);
@@ -325,6 +409,14 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
     }
 
     try {
+      // נרמול הקטגוריה ואיחוד עם קטגוריה קיימת זהה (למניעת כפילויות כמו "מסעדות" / " מסעדות ")
+      const matchedCategory = availableCategories.find(
+        (c) => normalizeCategory(c) === normalizeCategory(newExpense.category)
+      );
+      const finalCategory =
+        matchedCategory ||
+        newExpense.category.trim().replace(/\s+/g, " ");
+
       const expenseData = {
         group_id: group.id,
         title: newExpense.title,
@@ -334,8 +426,12 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
         amount_in_base: Math.round(amountVal * rateVal * 100) / 100, // עיגול ל-2 ספרות
         payer_name: newExpense.payer_name,
         beneficiaries: newExpense.beneficiaries,
-        category: newExpense.category,
+        category: finalCategory,
         date: new Date(newExpense.date).toISOString(),
+        owner_email: group.owner_email || user?.email || "",
+        shared_with_emails: group.shared_with_emails || [],
+        added_by_name: user?.full_name || user?.email || "",
+        added_by_email: user?.email || ""
       };
 
       if (editingExpense) {
@@ -345,9 +441,9 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
         );
         setExpenses(
           expenses.map((e) =>
-            e.id === editingExpense.id
-              ? { ...e, ...expenseData, id: editingExpense.id }
-              : e
+          e.id === editingExpense.id ?
+          { ...e, ...expenseData, id: editingExpense.id } :
+          e
           )
         );
         toast.success("ההוצאה עודכנה בהצלחה");
@@ -360,6 +456,7 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
       setIsAddExpenseOpen(false);
       setEditingExpense(null);
       setIsRateManual(false);
+      setShowCustomCategoryInput(false);
       setNewExpense({
         title: "",
         amount: "",
@@ -368,7 +465,7 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
         payer_name: participants[0] || "",
         beneficiaries: participants,
         category: "כללי",
-        date: new Date().toISOString().split("T")[0],
+        date: new Date().toISOString().split("T")[0]
       });
     } catch (error) {
       console.error(error);
@@ -386,9 +483,14 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
       payer_name: expense.payer_name,
       beneficiaries: expense.beneficiaries,
       category: expense.category,
-      date: expense.date.split("T")[0],
+      date: expense.date.split("T")[0]
     });
     setIsRateManual(true);
+    // אם הקטגוריה כבר קיימת ברשימה (כולל קטגוריות חופשיות שנשמרו) — הצג אותה ברשימה; אחרת פתח קלט חופשי
+    const inList = availableCategories.some(
+      (c) => normalizeCategory(c) === normalizeCategory(expense.category)
+    );
+    setShowCustomCategoryInput(!inList);
     setIsAddExpenseOpen(true);
   };
 
@@ -403,6 +505,8 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
         to_person: settleData.to,
         amount: parseFloat(settleData.amount),
         date: new Date().toISOString(),
+        owner_email: group.owner_email || user?.email || "",
+        shared_with_emails: group.shared_with_emails || []
       });
 
       setSettlements([created, ...settlements]);
@@ -421,7 +525,7 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
       from_person: settlement.from_person,
       to_person: settlement.to_person,
       amount: settlement.amount.toString(),
-      date: settlement.date ? new Date(settlement.date).toISOString().split("T")[0] : "",
+      date: settlement.date ? new Date(settlement.date).toISOString().split("T")[0] : ""
     });
     setIsEditSettlementOpen(true);
   };
@@ -443,16 +547,16 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
         from_person: editSettlementData.from_person,
         to_person: editSettlementData.to_person,
         amount: amountVal,
-        date: editSettlementData.date ? new Date(editSettlementData.date).toISOString() : editingSettlement.date,
+        date: editSettlementData.date ? new Date(editSettlementData.date).toISOString() : editingSettlement.date
       };
 
       await db.entities.ExpenseSettlement.update(editingSettlement.id, updatedData);
-      
+
       setSettlements(
         settlements.map((s) =>
-          s.id === editingSettlement.id
-            ? { ...s, ...updatedData }
-            : s
+        s.id === editingSettlement.id ?
+        { ...s, ...updatedData } :
+        s
         )
       );
 
@@ -478,21 +582,21 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
 
   const handleDeleteGroup = async () => {
     if (
-      !confirm(
-        "האם אתה בטוח שברצונך למחוק את הקבוצה? פעולה זו תמחק את כל ההוצאות והמשתתפים ולא ניתן לשחזר."
-      )
-    )
-      return;
+    !confirm(
+      "האם אתה בטוח שברצונך למחוק את הקבוצה? פעולה זו תמחק את כל ההוצאות והמשתתפים ולא ניתן לשחזר."
+    ))
+
+    return;
 
     try {
       await Promise.all(
         expenses.map((exp) =>
-          db.entities.GroupExpense.delete(exp.id)
+        db.entities.GroupExpense.delete(exp.id)
         )
       );
       await Promise.all(
         settlements.map((set) =>
-          db.entities.ExpenseSettlement.delete(set.id)
+        db.entities.ExpenseSettlement.delete(set.id)
         )
       );
       await db.entities.ExpenseGroup.delete(group.id);
@@ -518,11 +622,11 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
 
     try {
       const updatedParticipants = [
-        ...participants,
-        newParticipantName.trim(),
-      ];
+      ...participants,
+      newParticipantName.trim()];
+
       await db.entities.ExpenseGroup.update(group.id, {
-        participants: updatedParticipants,
+        participants: updatedParticipants
       });
       setParticipants(updatedParticipants);
       setNewParticipantName("");
@@ -541,11 +645,11 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
     }
 
     if (
-      !confirm(
-        `האם אתה בטוח שברצונך להסיר את ${participantName}? פעולה זו תמחק גם את כל ההוצאות שלו.`
-      )
-    )
-      return;
+    !confirm(
+      `האם אתה בטוח שברצונך להסיר את ${participantName}? פעולה זו תמחק גם את כל ההוצאות שלו.`
+    ))
+
+    return;
 
     try {
       const updatedParticipants = participants.filter(
@@ -557,39 +661,39 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
       );
       await Promise.all(
         expensesToDelete.map((exp) =>
-          db.entities.GroupExpense.delete(exp.id)
+        db.entities.GroupExpense.delete(exp.id)
         )
       );
 
       const expensesToUpdate = expenses.filter(
         (e) =>
-          e.payer_name !== participantName &&
-          e.beneficiaries.includes(participantName)
+        e.payer_name !== participantName &&
+        e.beneficiaries.includes(participantName)
       );
       await Promise.all(
         expensesToUpdate.map((exp) =>
-          db.entities.GroupExpense.update(exp.id, {
-            beneficiaries: exp.beneficiaries.filter(
-              (b) => b !== participantName
-            ),
-          })
+        db.entities.GroupExpense.update(exp.id, {
+          beneficiaries: exp.beneficiaries.filter(
+            (b) => b !== participantName
+          )
+        })
         )
       );
 
       await db.entities.ExpenseGroup.update(group.id, {
-        participants: updatedParticipants,
+        participants: updatedParticipants
       });
 
       setParticipants(updatedParticipants);
       setExpenses(
-        expenses
-          .filter((e) => e.payer_name !== participantName)
-          .map((e) => ({
-            ...e,
-            beneficiaries: e.beneficiaries.filter(
-              (b) => b !== participantName
-            ),
-          }))
+        expenses.
+        filter((e) => e.payer_name !== participantName).
+        map((e) => ({
+          ...e,
+          beneficiaries: e.beneficiaries.filter(
+            (b) => b !== participantName
+          )
+        }))
       );
 
       toast.success("המשתתף הוסר בהצלחה");
@@ -613,14 +717,97 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
     )}`;
   };
 
-  const isOwner = user && group.created_by === user.email;
+  const isOwner = user && (group.owner_email === user.email || !group.owner_email && group.created_by_id === user.id);
+
+  const refreshSharedEmails = (updated) => {
+    const emails = updated.shared_with_emails || [];
+    setSharedEmails(emails);
+    onGroupUpdated?.(updated);
+  };
+
+  const handleShare = async () => {
+    if (!shareEmail.trim()) {
+      toast.error("אנא הכנס כתובת מייל תקינה");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const email = shareEmail.trim();
+    if (!emailRegex.test(email)) {
+      toast.error("כתובת המייל שהוכנסה אינה תקינה");
+      return;
+    }
+    if (sharedEmails.includes(email)) {
+      toast.error("ניהול ההוצאות כבר משותף עם כתובת מייל זו");
+      return;
+    }
+    if (group.owner_email === email) {
+      toast.error("לא ניתן לשתף עם עצמך");
+      return;
+    }
+    try {
+      const updatedEmails = [...sharedEmails, email];
+      const updated = await db.entities.ExpenseGroup.update(group.id, {
+        shared_with_emails: updatedEmails
+      });
+      // הפצת רשימת השיתוף המעודכנת לכל רשומות ההוצאות והסגירות הקיימות,
+      // כך שמשתמש שזה עתה שותף יוכל לראות גם הוצאות שנוצרו לפני השיתוף
+      await Promise.all([
+        db.entities.GroupExpense.updateMany(
+          { group_id: group.id },
+          { $set: { shared_with_emails: updatedEmails } }
+        ),
+        db.entities.ExpenseSettlement.updateMany(
+          { group_id: group.id },
+          { $set: { shared_with_emails: updatedEmails } }
+        )
+      ]);
+      refreshSharedEmails({ ...group, ...updated });
+      setShareEmail("");
+      toast.success(`ניהול ההוצאות שותף עם ${email}`);
+    } catch (e) {
+      console.error(e);
+      toast.error("שגיאה בשיתוף ניהול ההוצאות");
+    }
+  };
+
+  const handleRemoveShared = async (emailToRemove) => {
+    try {
+      const updatedEmails = sharedEmails.filter((e) => e !== emailToRemove);
+      const updated = await db.entities.ExpenseGroup.update(group.id, {
+        shared_with_emails: updatedEmails
+      });
+      // הפצת רשימת השיתוף המעודכנת לכל רשומות ההוצאות והסגירות הקיימות,
+      // כך שהסרת שיתוף תחסום גם הוצאות ישנות מהמשתמש שהוסר
+      await Promise.all([
+        db.entities.GroupExpense.updateMany(
+          { group_id: group.id },
+          { $set: { shared_with_emails: updatedEmails } }
+        ),
+        db.entities.ExpenseSettlement.updateMany(
+          { group_id: group.id },
+          { $set: { shared_with_emails: updatedEmails } }
+        )
+      ]);
+      refreshSharedEmails({ ...group, ...updated });
+      toast.success(`השיתוף עם ${emailToRemove} הוסר`);
+    } catch (e) {
+      console.error(e);
+      toast.error("שגיאה בהסרת השיתוף");
+    }
+  };
 
   return (
     <div
       className="space-y-6"
       dir="rtl"
-      style={{ direction: "rtl", textAlign: "right" }}
-    >
+      style={{ direction: "rtl", textAlign: "right" }}>
+      
+      {/* Owner / participant banner */}
+      <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm ${isOwner ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>
+        {isOwner ? <ShieldCheck className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+        <span>{isOwner ? "אתה המנהל של ניהול הוצאות זה — שליטה מלאה" : "אתה משתתף בניהול הוצאות משותף — ניתן להוסיף ולערוך הוצאות, אך לא למחוק"}</span>
+      </div>
+
       {/* Participants List */}
       <Card className="bg-gradient-to-br from-slate-50 to-blue-50">
         <CardHeader className="pb-3">
@@ -634,44 +821,86 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 size="sm"
                 variant="outline"
                 onClick={() => setIsExportDialogOpen(true)}
-                className="flex items-center gap-1 flex-1 sm:flex-none"
-              >
+                className="flex items-center gap-1 flex-1 sm:flex-none">
+                
                 <Download className="w-4 h-4" />
                 <span className="hidden xs:inline">ייצא נתונים</span>
                 <span className="xs:hidden">ייצוא</span>
               </Button>
+              {isOwner &&
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsShareOpen(true)}
+                className="flex items-center gap-1 flex-1 sm:flex-none border-indigo-300 text-indigo-700 hover:bg-indigo-50">
+                
+                  <Share2 className="w-4 h-4" />
+                  <span className="hidden xs:inline">שתף ניהול הוצאות</span>
+                  <span className="xs:hidden">שתף</span>
+                </Button>
+              }
+              {isOwner &&
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => setIsAddParticipantOpen(true)}
-                className="flex items-center gap-1 flex-1 sm:flex-none"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span className="hidden xs:inline">הוסף משתתף</span>
-                <span className="xs:hidden">הוסף</span>
-              </Button>
+                className="flex items-center gap-1 flex-1 sm:flex-none">
+                
+                  <UserPlus className="w-4 h-4" />
+                  <span className="hidden xs:inline">הוסף משתתף</span>
+                  <span className="xs:hidden">הוסף</span>
+                </Button>
+              }
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {participants.map((p, i) => (
-              <div
-                key={i}
-                className="px-3 py-1.5 bg-white rounded-full border border-blue-200 text-sm font-medium text-slate-700 shadow-sm flex items-center gap-2 group"
-              >
+            {participants.map((p, i) =>
+            <div
+              key={i}
+              className="px-3 py-1.5 bg-white rounded-full border border-blue-200 text-sm font-medium text-slate-700 shadow-sm flex items-center gap-2 group">
+              
                 {p}
-                {participants.length > 1 && (
-                  <button
-                    onClick={() => handleRemoveParticipant(p)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700"
-                  >
+                {participants.length > 1 && isOwner &&
+              <button
+                onClick={() => handleRemoveParticipant(p)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700">
+                
                     <X className="w-3 h-3" />
                   </button>
-                )}
+              }
               </div>
-            ))}
+            )}
           </div>
+
+          {sharedEmails.length > 0 &&
+          <div className="mt-4 pt-4 border-t border-indigo-100">
+              <p className="text-xs font-semibold text-indigo-700 mb-2 flex items-center gap-1">
+                <Share2 className="w-3.5 h-3.5" />
+                משתתפים משותפים (ניהול הוצאות):
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {sharedEmails.map((email, i) =>
+              <div
+                key={i}
+                className="px-3 py-1.5 bg-indigo-50 rounded-full border border-indigo-200 text-sm font-medium text-indigo-700 shadow-sm flex items-center gap-2 group">
+                
+                    <Mail className="w-3.5 h-3.5" />
+                    {email}
+                    {isOwner &&
+                <button
+                  onClick={() => handleRemoveShared(email)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700">
+                  
+                        <X className="w-3 h-3" />
+                      </button>
+                }
+                  </div>
+              )}
+              </div>
+            </div>
+          }
         </CardContent>
       </Card>
 
@@ -706,8 +935,8 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
         {/* כרטיס הוסף הוצאה */}
         <Card
           className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white border-none shadow-lg cursor-pointer hover:opacity-90 transition-opacity"
-          onClick={() => setIsAddExpenseOpen(true)}
-        >
+          onClick={() => setIsAddExpenseOpen(true)}>
+          
           <CardContent className="p-6 flex items-center justify-center gap-3 h-full">
             <Plus className="w-8 h-8 bg-white/20 rounded-full p-1" />
             <span className="text-xl font-semibold">הוסף הוצאה חדשה</span>
@@ -720,27 +949,27 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
         value={activeTab}
         onValueChange={setActiveTab}
         className="w-full"
-        dir="rtl"
-      >
+        dir="rtl">
+        
         <TabsList className="w-full grid grid-cols-3 bg-white p-1 shadow-sm border h-auto">
           <TabsTrigger
             value="overview"
-            className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs sm:text-sm px-2 py-2"
-          >
+            className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs sm:text-sm px-2 py-2">
+            
             <span className="hidden sm:inline">תמונת מצב</span>
             <span className="sm:hidden">סקירה</span>
           </TabsTrigger>
           <TabsTrigger
             value="expenses"
-            className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs sm:text-sm px-2 py-2"
-          >
+            className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs sm:text-sm px-2 py-2">
+            
             <span className="hidden sm:inline">רשימת הוצאות</span>
             <span className="sm:hidden">הוצאות</span>
           </TabsTrigger>
           <TabsTrigger
             value="balances"
-            className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs sm:text-sm px-2 py-2"
-          >
+            className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs sm:text-sm px-2 py-2">
+            
             <span className="hidden xs:inline">חובות והתחשבנות</span>
             <span className="xs:hidden">חובות</span>
           </TabsTrigger>
@@ -748,24 +977,37 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6 mt-6">
+          {/* גרף פאי - פילוח הוצאות */}
+          {expenses.length > 0 &&
+          <Card>
+              <CardContent className="p-6">
+                <ExpensePieChart
+                expenses={expenses}
+                baseCurrency={group.base_currency}
+                currencySymbol={CURRENCY_SYMBOLS[group.base_currency]} />
+              
+              </CardContent>
+            </Card>
+          }
+
           {/* קיזוז חובות מומלץ */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">קיזוז חובות מומלץ</CardTitle>
             </CardHeader>
             <CardContent>
-              {optimizedDebts.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 flex flex-col items-center">
+              {optimizedDebts.length === 0 ?
+              <div className="text-center py-8 text-slate-500 flex flex-col items-center px-1">
                   <CheckCircle2 className="w-12 h-12 text-green-500 mb-2" />
                   <p>הכל מאוזן! אין חובות פתוחים.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {optimizedDebts.map((debt, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100"
-                    >
+                </div> :
+
+              <div className="space-y-3">
+                  {optimizedDebts.map((debt, i) =>
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                  
                       <div className="flex items-center gap-2">
                         {/* החייב מימין באדום */}
                         <div className="font-semibold text-red-600">
@@ -783,25 +1025,25 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                           {formatMoney(debt.amount)}
                         </span>
                         <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs"
-                          onClick={() => {
-                            setSettleData({
-                              from: debt.from,
-                              to: debt.to,
-                              amount: debt.amount.toString(),
-                            });
-                            setIsSettleOpen(true);
-                          }}
-                        >
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        setSettleData({
+                          from: debt.from,
+                          to: debt.to,
+                          amount: debt.amount.toString()
+                        });
+                        setIsSettleOpen(true);
+                      }}>
+                      
                           פרע חוב
                         </Button>
                       </div>
                     </div>
-                  ))}
+                )}
                 </div>
-              )}
+              }
             </CardContent>
           </Card>
 
@@ -812,11 +1054,11 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {expenses.slice(0, 5).map((exp) => (
-                  <div
-                    key={exp.id}
-                    className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
-                  >
+                {expenses.slice(0, 5).map((exp) =>
+                <div
+                  key={exp.id}
+                  className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                  
                     {/* צד ימין - קטגוריה ופרטים */}
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
@@ -828,9 +1070,9 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                         </p>
                         <p className="text-xs text-slate-500">
                           {exp.payer_name} שילם עבור{" "}
-                          {exp.beneficiaries.length === participants.length
-                            ? "כולם"
-                            : `${exp.beneficiaries.length} חברים`}
+                          {exp.beneficiaries.length === participants.length ?
+                        "כולם" :
+                        `${exp.beneficiaries.length} חברים`}
                         </p>
                       </div>
                     </div>
@@ -844,18 +1086,18 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                       </p>
                     </div>
                   </div>
-                ))}
-                {expenses.length === 0 && (
-                  <p className="text-center text-slate-500 py-4">
+                )}
+                {expenses.length === 0 &&
+                <p className="text-center text-slate-500 py-4">
                     אין פעילות אחרונה
                   </p>
-                )}
+                }
               </div>
               <Button
                 variant="link"
                 className="w-full mt-2"
-                onClick={() => setActiveTab("expenses")}
-              >
+                onClick={() => setActiveTab("expenses")}>
+                
                 הצג את כל ההוצאות
               </Button>
             </CardContent>
@@ -873,13 +1115,17 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                     <TableHead className="text-right">תיאור</TableHead>
                     <TableHead className="text-right">קטגוריה</TableHead>
                     <TableHead className="text-right">שולם עי</TableHead>
+                    <TableHead className="text-right">נוסף על ידי</TableHead>
                     <TableHead className="text-right">סכום</TableHead>
                     <TableHead className="text-right w-20">פעולות</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {expenses.map((exp) => (
-                    <TableRow key={exp.id}>
+                  {expenses.map((exp) => {
+                    const canEdit = isOwner || exp.added_by_email && exp.added_by_email === user?.email;
+                    const canDelete = isOwner;
+                    return (
+                      <TableRow key={exp.id}>
                       <TableCell className="text-slate-500 text-xs text-right">
                         {format(new Date(exp.date), "dd/MM/yy")}
                       </TableCell>
@@ -894,41 +1140,50 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                       <TableCell className="text-right">
                         {exp.payer_name}
                       </TableCell>
+                      <TableCell className="text-right text-xs text-slate-500">
+                        {exp.added_by_name || "—"}
+                        {exp.added_by_name && <div className="text-[10px] text-slate-400">{format(new Date(exp.created_date || exp.date), "dd/MM/yy HH:mm")}</div>}
+                      </TableCell>
                       <TableCell className="text-right font-bold">
                         {formatMoney(exp.amount, exp.currency)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-blue-500 hover:text-blue-700"
-                            onClick={() => handleEditExpense(exp)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-400 hover:text-red-600"
-                            onClick={() => handleDeleteExpense(exp.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {canEdit &&
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-blue-500 hover:text-blue-700"
+                              onClick={() => handleEditExpense(exp)}>
+                              
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            }
+                          {canDelete &&
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-red-400 hover:text-red-600"
+                              onClick={() => handleDeleteExpense(exp.id)}>
+                              
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                            }
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))}
-                  {expenses.length === 0 && (
-                    <TableRow>
+                    </TableRow>);
+
+                  })}
+                  {expenses.length === 0 &&
+                  <TableRow>
                       <TableCell
-                        colSpan={6}
-                        className="text-center py-8 text-slate-500"
-                      >
+                      colSpan={7}
+                      className="text-center py-8 text-slate-500">
+                      
                         לא נמצאו הוצאות
                       </TableCell>
                     </TableRow>
-                  )}
+                  }
                 </TableBody>
               </Table>
             </CardContent>
@@ -948,11 +1203,11 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                   const isBalanced = Math.abs(balance) < 0.01;
                   const isPositive = balance > 0.01;
                   const maxBalance =
-                    Math.max(
-                      ...Object.values(balances).map(Math.abs)
-                    ) || 1;
+                  Math.max(
+                    ...Object.values(balances).map(Math.abs)
+                  ) || 1;
                   const percent =
-                    (Math.abs(balance) / maxBalance) * 100;
+                  Math.abs(balance) / maxBalance * 100;
 
                   return (
                     <div key={p} className="space-y-2">
@@ -960,14 +1215,14 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                         <span className="font-semibold">{p}</span>
                         <span
                           className={`font-bold ${
-                            isBalanced
-                              ? "text-slate-500"
-                              : isPositive
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                          dir="ltr"
-                        >
+                          isBalanced ?
+                          "text-slate-500" :
+                          isPositive ?
+                          "text-green-600" :
+                          "text-red-600"}`
+                          }
+                          dir="ltr">
+                          
                           {isBalanced ? "" : isPositive ? "+" : ""}
                           {formatMoney(balance)}
                         </span>
@@ -975,26 +1230,26 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                       <div className="h-2 bg-slate-100 rounded-full overflow-hidden flex">
                         <div
                           className={`h-full rounded-full ${
-                            isBalanced
-                              ? "bg-slate-300"
-                              : isPositive 
-                              ? "bg-green-500" 
-                              : "bg-red-500"
-                          }`}
+                          isBalanced ?
+                          "bg-slate-300" :
+                          isPositive ?
+                          "bg-green-500" :
+                          "bg-red-500"}`
+                          }
                           style={{
-                            width: `${Math.min(percent, 100)}%`,
-                          }}
-                        />
+                            width: `${Math.min(percent, 100)}%`
+                          }} />
+                        
                       </div>
                       <p className="text-xs text-slate-400">
-                        {isBalanced
-                          ? "מאוזן"
-                          : isPositive
-                          ? "זכאי לקבל כסף"
-                          : "חייב כסף לקבוצה"}
+                        {isBalanced ?
+                        "מאוזן" :
+                        isPositive ?
+                        "זכאי לקבל כסף" :
+                        "חייב כסף לקבוצה"}
                       </p>
-                    </div>
-                  );
+                    </div>);
+
                 })}
               </div>
             </CardContent>
@@ -1005,17 +1260,17 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
               <CardTitle>היסטוריית העברות</CardTitle>
             </CardHeader>
             <CardContent>
-              {settlements.length === 0 ? (
-                <p className="text-slate-500 text-center">
+              {settlements.length === 0 ?
+              <p className="text-slate-500 text-center">
                   טרם בוצעו העברות כספים
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {settlements.map((s) => (
-                    <div
-                      key={s.id}
-                      className="flex items-center gap-2 text-sm p-2 hover:bg-slate-50 rounded transition-colors"
-                    >
+                </p> :
+
+              <div className="space-y-3">
+                  {settlements.map((s) =>
+                <div
+                  key={s.id}
+                  className="flex items-center gap-2 text-sm p-2 hover:bg-slate-50 rounded transition-colors">
+                  
                       <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
                       <span className="flex-1">
                         <span className="font-bold">
@@ -1030,26 +1285,28 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                       <span className="text-xs text-slate-400 shrink-0">
                         {format(new Date(s.date), "dd/MM")}
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-blue-500 hover:text-blue-700 shrink-0"
-                        onClick={() => handleEditSettlement(s)}
-                      >
+                      {isOwner &&
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-blue-500 hover:text-blue-700 shrink-0"
+                    onClick={() => handleEditSettlement(s)}>
+                    
                         <Edit className="w-3.5 h-3.5" />
                       </Button>
+                  }
                     </div>
-                  ))}
+                )}
                 </div>
-              )}
+              }
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
       {/* מחיקת קבוצה - למטה בסוף הדף */}
-      {isOwner && (
-        <Card className="bg-red-50 border-red-200 mt-8">
+      {isOwner &&
+      <Card className="bg-red-50 border-red-200 mt-8">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-600" />
@@ -1059,17 +1316,17 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
               </span>
             </div>
             <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteGroup}
-              className="bg-red-600 hover:bg-red-700"
-            >
+            variant="destructive"
+            size="sm"
+            onClick={handleDeleteGroup}
+            className="bg-red-600 hover:bg-red-700">
+            
               <Trash2 className="w-4 h-4 ml-2" />
               מחק קבוצה
             </Button>
           </CardContent>
         </Card>
-      )}
+      }
 
       {/* Add/Edit Expense Dialog */}
       <Dialog
@@ -1079,6 +1336,7 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
           if (!open) {
             setEditingExpense(null);
             setIsRateManual(false);
+            setShowCustomCategoryInput(false);
             setNewExpense({
               title: "",
               amount: "",
@@ -1087,16 +1345,16 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
               payer_name: participants[0] || "",
               beneficiaries: participants,
               category: "כללי",
-              date: new Date().toISOString().split("T")[0],
+              date: new Date().toISOString().split("T")[0]
             });
           }
-        }}
-      >
+        }}>
+        
         <DialogContent
           dir="rtl"
           className="max-w-lg max-h-[85vh] overflow-y-auto"
-          style={{ marginTop: "80px" }}
-        >
+          style={{ marginTop: "80px" }}>
+          
           <DialogHeader>
             <DialogTitle>
               {editingExpense ? "עריכת הוצאה" : "הוספת הוצאה חדשה"}
@@ -1109,12 +1367,12 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 placeholder="לדוגמה: ארוחת ערב במסעדה"
                 value={newExpense.title}
                 onChange={(e) =>
-                  setNewExpense({
-                    ...newExpense,
-                    title: e.target.value,
-                  })
-                }
-              />
+                setNewExpense({
+                  ...newExpense,
+                  title: e.target.value
+                })
+                } />
+              
             </div>
 
             <div className="flex gap-4">
@@ -1125,73 +1383,73 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                   placeholder="0.00"
                   value={newExpense.amount}
                   onChange={(e) =>
-                    setNewExpense({
-                      ...newExpense,
-                      amount: e.target.value,
-                    })
-                  }
-                />
+                  setNewExpense({
+                    ...newExpense,
+                    amount: e.target.value
+                  })
+                  } />
+                
               </div>
-              <div className="w-24">
+              <div className="w-36">
                 <Label>מטבע</Label>
                 <Select
                   value={newExpense.currency}
                   onValueChange={(v) =>
-                    setNewExpense({ ...newExpense, currency: v })
-                  }
-                >
+                  setNewExpense({ ...newExpense, currency: v })
+                  }>
+                  
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    {Object.keys(CURRENCY_SYMBOLS).map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
+                  <SelectContent className="max-h-60">
+                    {CURRENCIES.map((c) =>
+                    <SelectItem key={c.code} value={c.code}>
+                        {c.symbol} {c.name} ({c.code})
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {newExpense.currency !== group.base_currency && (
-              <div>
+            {newExpense.currency !== group.base_currency &&
+            <div>
                 <Label className="flex items-center justify-between">
                   <span>שער המרה (1 {newExpense.currency} = ? {group.base_currency})</span>
-                  {fetchingRate && (
-                    <span className="text-xs text-blue-600 flex items-center gap-1">
+                  {fetchingRate &&
+                <span className="text-xs text-blue-600 flex items-center gap-1">
                       <Loader2 className="w-3 h-3 animate-spin" />
                       מושך שער...
                     </span>
-                  )}
-                  {!fetchingRate && !isRateManual && (
-                    <span className="text-xs text-green-600">נמשך אוטומטית</span>
-                  )}
-                  {isRateManual && (
-                    <span className="text-xs text-amber-600">שער ידני</span>
-                  )}
+                }
+                  {!fetchingRate && !isRateManual &&
+                <span className="text-xs text-green-600">נמשך אוטומטית</span>
+                }
+                  {isRateManual &&
+                <span className="text-xs text-amber-600">שער ידני</span>
+                }
                 </Label>
                 <Input
-                  type="number"
-                  step="0.0001"
-                  value={newExpense.exchange_rate}
-                  onChange={(e) => {
-                    setNewExpense({
-                      ...newExpense,
-                      exchange_rate: e.target.value,
-                    });
-                    setIsRateManual(true);
-                  }}
-                />
+                type="number"
+                step="0.0001"
+                value={newExpense.exchange_rate}
+                onChange={(e) => {
+                  setNewExpense({
+                    ...newExpense,
+                    exchange_rate: e.target.value
+                  });
+                  setIsRateManual(true);
+                }} />
+              
                 <p className="text-xs text-slate-500 mt-1">
                   מחושב:{" "}
                   {formatMoney(
-                    parseFloat(newExpense.amount || "0") *
-                      parseFloat(newExpense.exchange_rate || "1")
-                  )}
+                  parseFloat(newExpense.amount || "0") *
+                  parseFloat(newExpense.exchange_rate || "1")
+                )}
                 </p>
               </div>
-            )}
+            }
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -1199,40 +1457,74 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 <Select
                   value={newExpense.payer_name}
                   onValueChange={(v) =>
-                    setNewExpense({ ...newExpense, payer_name: v })
-                  }
-                >
+                  setNewExpense({ ...newExpense, payer_name: v })
+                  }>
+                  
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {participants.map((p) => (
-                      <SelectItem key={p} value={p}>
+                    {participants.map((p) =>
+                    <SelectItem key={p} value={p}>
                         {p}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label>קטגוריה</Label>
+                {showCustomCategoryInput ?
+                <div className="flex gap-2">
+                    <Input
+                    placeholder="הקלד קטגוריה חופשית"
+                    value={newExpense.category}
+                    onChange={(e) =>
+                    setNewExpense({ ...newExpense, category: e.target.value })
+                    } />
+                  
+                    <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() => {
+                      setShowCustomCategoryInput(false);
+                      setNewExpense({ ...newExpense, category: "כללי" });
+                    }}>
+                    
+                      רשימה
+                    </Button>
+                  </div> :
+
                 <Select
-                  value={newExpense.category}
-                  onValueChange={(v) =>
-                    setNewExpense({ ...newExpense, category: v })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.keys(CATEGORY_ICONS).map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  value={availableCategories.some((c) =>
+                    normalizeCategory(c) === normalizeCategory(newExpense.category)
+                  ) ?
+                  newExpense.category :
+                  "__custom__"}
+                  onValueChange={(v) => {
+                    if (v === "__custom__") {
+                      setShowCustomCategoryInput(true);
+                      setNewExpense({ ...newExpense, category: "" });
+                    } else {
+                      setNewExpense({ ...newExpense, category: v });
+                    }
+                  }}>
+
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCategories.map((c) =>
+                    <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                    )}
+                      <SelectItem value="__custom__">➕ הוסף קטגוריה חדשה…</SelectItem>
+                    </SelectContent>
+                  </Select>
+                }
               </div>
             </div>
 
@@ -1241,38 +1533,38 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 עבור מי? (מי משתתף בהוצאה)
               </Label>
               <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-lg border">
-                {participants.map((p) => (
-                  <div
-                    key={p}
-                    className="flex items-center space-x-2 space-x-reverse"
-                  >
+                {participants.map((p) =>
+                <div
+                  key={p}
+                  className="flex items-center space-x-2 space-x-reverse">
+                  
                     <Checkbox
-                      id={`ben-${p}`}
-                      checked={newExpense.beneficiaries.includes(p)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setNewExpense((prev) => ({
-                            ...prev,
-                            beneficiaries: [...prev.beneficiaries, p],
-                          }));
-                        } else {
-                          setNewExpense((prev) => ({
-                            ...prev,
-                            beneficiaries: prev.beneficiaries.filter(
-                              (b) => b !== p
-                            ),
-                          }));
-                        }
-                      }}
-                    />
+                    id={`ben-${p}`}
+                    checked={newExpense.beneficiaries.includes(p)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setNewExpense((prev) => ({
+                          ...prev,
+                          beneficiaries: [...prev.beneficiaries, p]
+                        }));
+                      } else {
+                        setNewExpense((prev) => ({
+                          ...prev,
+                          beneficiaries: prev.beneficiaries.filter(
+                            (b) => b !== p
+                          )
+                        }));
+                      }
+                    }} />
+                  
                     <label
-                      htmlFor={`ben-${p}`}
-                      className="text-sm cursor-pointer select-none"
-                    >
+                    htmlFor={`ben-${p}`}
+                    className="text-sm cursor-pointer select-none">
+                    
                       {p}
                     </label>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -1282,12 +1574,12 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 type="date"
                 value={newExpense.date}
                 onChange={(e) =>
-                  setNewExpense({
-                    ...newExpense,
-                    date: e.target.value,
-                  })
-                }
-              />
+                setNewExpense({
+                  ...newExpense,
+                  date: e.target.value
+                })
+                } />
+              
             </div>
           </div>
           <DialogFooter>
@@ -1323,13 +1615,13 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 step="0.01"
                 value={settleData.amount}
                 onChange={(e) =>
-                  setSettleData({
-                    ...settleData,
-                    amount: e.target.value,
-                  })
+                setSettleData({
+                  ...settleData,
+                  amount: e.target.value
+                })
                 }
-                placeholder="0.00"
-              />
+                placeholder="0.00" />
+              
             </div>
           </div>
           <DialogFooter>
@@ -1341,8 +1633,8 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
       {/* Add Participant Dialog */}
       <Dialog
         open={isAddParticipantOpen}
-        onOpenChange={setIsAddParticipantOpen}
-      >
+        onOpenChange={setIsAddParticipantOpen}>
+        
         <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle>הוספת משתתף חדש</DialogTitle>
@@ -1353,15 +1645,15 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
               <Input
                 placeholder="לדוגמה: דני, יוסי..."
                 value={newParticipantName}
-                onChange={(e) => setNewParticipantName(e.target.value)}
-              />
+                onChange={(e) => setNewParticipantName(e.target.value)} />
+              
             </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsAddParticipantOpen(false)}
-            >
+              onClick={() => setIsAddParticipantOpen(false)}>
+              
               ביטול
             </Button>
             <Button onClick={handleAddParticipant}>הוסף</Button>
@@ -1377,8 +1669,66 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
         settlements={settlements}
         participants={participants}
         groupName={group.name}
-        baseCurrency={group.base_currency}
-      />
+        baseCurrency={group.base_currency} />
+      
+
+      {/* Share Expense Management Dialog */}
+      <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle>שיתוף ניהול הוצאות</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-slate-600">
+              שתף את ניהול ההוצאות עם חברים נוספים. הזן את כתובת המייל שבה נרשמו לאתר.
+              המשתתפים יוכלו לצפות בהוצאות ולהוסיף הוצאות חדשות, אך רק אתה (המנהל) תוכל למחוק הוצאות.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="הכנס כתובת מייל"
+                value={shareEmail}
+                onChange={(e) => setShareEmail(e.target.value)}
+                className="flex-1"
+                onKeyDown={(e) => {if (e.key === "Enter") handleShare();}} />
+              
+              <Button onClick={handleShare} className="bg-indigo-600 hover:bg-indigo-700">
+                <Share2 className="w-4 h-4 ml-1" />
+                שתף
+              </Button>
+            </div>
+            {sharedEmails.length > 0 &&
+            <div className="space-y-2 pt-2 border-t">
+                <Label className="flex items-center gap-1 text-sm">
+                  <Users className="w-4 h-4 text-indigo-600" />
+                  משותף עם ({sharedEmails.length}):
+                </Label>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {sharedEmails.map((email) =>
+                <div key={email} className="flex justify-between items-center p-2 bg-indigo-50 border border-indigo-200 rounded-lg">
+                      <span className="flex items-center gap-2 text-sm text-indigo-800">
+                        <Mail className="w-3.5 h-3.5" />
+                        {email}
+                      </span>
+                      <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 hover:bg-red-50"
+                    onClick={() => handleRemoveShared(email)}>
+                    
+                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                      </Button>
+                    </div>
+                )}
+                </div>
+              </div>
+            }
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsShareOpen(false)}>סגור</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Settlement Dialog */}
       <Dialog
@@ -1388,8 +1738,8 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
           if (!open) {
             setEditingSettlement(null);
           }
-        }}
-      >
+        }}>
+        
         <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle>עריכת העברה</DialogTitle>
@@ -1401,21 +1751,21 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 <Select
                   value={editSettlementData.from_person}
                   onValueChange={(v) =>
-                    setEditSettlementData({
-                      ...editSettlementData,
-                      from_person: v,
-                    })
-                  }
-                >
+                  setEditSettlementData({
+                    ...editSettlementData,
+                    from_person: v
+                  })
+                  }>
+                  
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {participants.map((p) => (
-                      <SelectItem key={p} value={p}>
+                    {participants.map((p) =>
+                    <SelectItem key={p} value={p}>
                         {p}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -1424,21 +1774,21 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 <Select
                   value={editSettlementData.to_person}
                   onValueChange={(v) =>
-                    setEditSettlementData({
-                      ...editSettlementData,
-                      to_person: v,
-                    })
-                  }
-                >
+                  setEditSettlementData({
+                    ...editSettlementData,
+                    to_person: v
+                  })
+                  }>
+                  
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {participants.map((p) => (
-                      <SelectItem key={p} value={p}>
+                    {participants.map((p) =>
+                    <SelectItem key={p} value={p}>
                         {p}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -1452,13 +1802,13 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 min="0.01"
                 value={editSettlementData.amount}
                 onChange={(e) =>
-                  setEditSettlementData({
-                    ...editSettlementData,
-                    amount: e.target.value,
-                  })
+                setEditSettlementData({
+                  ...editSettlementData,
+                  amount: e.target.value
+                })
                 }
-                placeholder="0.00"
-              />
+                placeholder="0.00" />
+              
             </div>
 
             <div>
@@ -1467,12 +1817,12 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
                 type="date"
                 value={editSettlementData.date}
                 onChange={(e) =>
-                  setEditSettlementData({
-                    ...editSettlementData,
-                    date: e.target.value,
-                  })
-                }
-              />
+                setEditSettlementData({
+                  ...editSettlementData,
+                  date: e.target.value
+                })
+                } />
+              
             </div>
           </div>
           <DialogFooter>
@@ -1481,14 +1831,14 @@ export default function ExpenseDashboard({ group, onGroupDeleted, user }) {
               onClick={() => {
                 setIsEditSettlementOpen(false);
                 setEditingSettlement(null);
-              }}
-            >
+              }}>
+              
               ביטול
             </Button>
             <Button onClick={handleSaveEditedSettlement}>שמור שינויים</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 }

@@ -106,15 +106,16 @@ export default function MyTrips() {
         trip.trip_name
       );
       
-      // Separate into trips I own (first in created_by_group) vs trips shared with me
-      // RLS already handles the access control, we just categorize here
+      // Categorize: trips I own (I created them) vs trips explicitly shared with me.
+      // Ownership is determined by the built-in creator id, NOT admin role.
+      // "Shared with me" requires my email to be explicitly in the shared_with list.
       const userTrips = validTrips.filter(trip => 
-        trip.created_by === currentUser.email ||
-        (Array.isArray(trip.created_by_group) && trip.created_by_group[0] === currentUser.email)
+        trip.created_by_id === currentUser.id
       );
       const tripsSharedWithUser = validTrips.filter(trip => 
-        trip.created_by !== currentUser.email &&
-        !(Array.isArray(trip.created_by_group) && trip.created_by_group[0] === currentUser.email)
+        trip.created_by_id !== currentUser.id &&
+        Array.isArray(trip.shared_with) &&
+        trip.shared_with.includes(currentUser.email)
       );
 
       // Comprehensive filtering for destinations
