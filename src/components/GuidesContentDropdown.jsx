@@ -23,6 +23,9 @@ const MAIN_LINKS = [
   { title: "בטיחות", url: createPageUrl("Guides?tab=safety"), icon: Shield },
 ];
 
+// זמן השהיה לסגירה — ארוך מספיק כדי לאפשר מעבר חלק בין הכפתור לפאנל מבלי להרוס את ה-DOM.
+const CLOSE_DELAY = 350;
+
 export default function GuidesContentDropdown({ menuArticles = [], isCurrentPage }) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef(null);
@@ -42,7 +45,7 @@ export default function GuidesContentDropdown({ menuArticles = [], isCurrentPage
     setOpen(true);
   };
 
-  const scheduleClose = (delay = 200) => {
+  const scheduleClose = (delay = CLOSE_DELAY) => {
     cancelClose();
     closeTimer.current = setTimeout(() => setOpen(false), delay);
   };
@@ -52,7 +55,7 @@ export default function GuidesContentDropdown({ menuArticles = [], isCurrentPage
     setOpen((prev) => !prev);
   };
 
-  // Close on Escape and click outside — only active when open
+  // סגירה ב-Escape ובלחיצה מחוץ לקונטיינר — פעיל רק כשפתוח
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e) => {
@@ -76,10 +79,10 @@ export default function GuidesContentDropdown({ menuArticles = [], isCurrentPage
     };
   }, [open]);
 
-  // Cleanup timer on unmount
+  // ניקוי הטיימר בעת unmount
   useEffect(() => () => cancelClose(), []);
 
-  // Close when focus leaves the container (keyboard navigation)
+  // סגירה כשהפוקוס עוזב את הקונטיינר (ניווט מקלדת)
   const handleBlur = (e) => {
     if (!containerRef.current?.contains(e.relatedTarget)) {
       cancelClose();
@@ -101,64 +104,65 @@ export default function GuidesContentDropdown({ menuArticles = [], isCurrentPage
         onClick={handleClick}
         aria-haspopup="true"
         aria-expanded={open}
-        aria-controls={open ? contentId : undefined}
+        aria-controls={contentId}
         className="relative px-1.5 lg:px-2 xl:px-2.5 2xl:px-3 py-1.5 text-xs lg:text-sm xl:text-sm leading-tight h-auto min-w-0 whitespace-nowrap font-medium text-slate-700 hover:text-blue-600 transition-all rounded-md inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
       >
         מדריכים ותוכן
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
-      {open && (
+      {/* הפאנל נשאר תמיד ב-DOM ונשלט בנראות בלבד — מונע הריסה/בנייה מחדש ואת ההבהוב בגבול הכפתור↔פאנל */}
+      <div
+        className={`absolute top-full right-0 z-[200] pt-1 transition-opacity duration-150 ${
+          open ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"
+        }`}
+        onPointerEnter={handleOpen}
+        onPointerLeave={() => scheduleClose()}
+      >
         <div
-          className="absolute top-full right-0 z-[200] pt-1"
-          onPointerEnter={handleOpen}
-          onPointerLeave={() => scheduleClose()}
+          id={contentId}
+          className="w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 text-right"
         >
-          <div
-            id={contentId}
-            className="w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 text-right animate-fade-in"
-          >
-            <ul className="space-y-0.5">
-              {MAIN_LINKS.map((link) => {
-                const active = isCurrentPage?.(link.url);
-                return (
-                  <li key={link.title}>
+          <ul className="space-y-0.5">
+            {MAIN_LINKS.map((link) => {
+              const active = isCurrentPage?.(link.url);
+              return (
+                <li key={link.title}>
+                  <Link
+                    to={link.url}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 justify-end text-right w-full px-2 py-1.5 rounded-md hover:bg-blue-50 transition-colors text-sm text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  >
+                    <span className={active ? "text-blue-600 font-semibold" : ""}>{link.title}</span>
+                    <link.icon className={`w-4 h-4 shrink-0 ${active ? "text-blue-600" : "text-slate-400"}`} />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          {menuArticles.length > 0 && (
+            <>
+              <div className="my-1 border-t border-slate-100" />
+              <p className="text-xs text-slate-400 px-2 py-1">מאמרים נבחרים</p>
+              <ul className="space-y-0.5">
+                {menuArticles.map((art) => (
+                  <li key={art.id || art.url}>
                     <Link
-                      to={link.url}
+                      to={art.url}
                       onClick={() => setOpen(false)}
                       className="flex items-center gap-2 justify-end text-right w-full px-2 py-1.5 rounded-md hover:bg-blue-50 transition-colors text-sm text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
-                      <span className={active ? "text-blue-600 font-semibold" : ""}>{link.title}</span>
-                      <link.icon className={`w-4 h-4 shrink-0 ${active ? "text-blue-600" : "text-slate-400"}`} />
+                      <span className="truncate">{art.title}</span>
+                      <FileText className="w-4 h-4 shrink-0 text-slate-400" />
                     </Link>
                   </li>
-                );
-              })}
-            </ul>
-
-            {menuArticles.length > 0 && (
-              <>
-                <div className="my-1 border-t border-slate-100" />
-                <p className="text-xs text-slate-400 px-2 py-1">מאמרים נבחרים</p>
-                <ul className="space-y-0.5">
-                  {menuArticles.map((art) => (
-                    <li key={art.id || art.url}>
-                      <Link
-                        to={art.url}
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-2 justify-end text-right w-full px-2 py-1.5 rounded-md hover:bg-blue-50 transition-colors text-sm text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                      >
-                        <span className="truncate">{art.title}</span>
-                        <FileText className="w-4 h-4 shrink-0 text-slate-400" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

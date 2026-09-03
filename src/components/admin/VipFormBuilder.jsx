@@ -397,7 +397,7 @@ export default function VipFormBuilder() {
             <div className="space-y-4">
               {vipRequests.map(request => (
                 <div key={request.id} className="p-4 border rounded-lg bg-slate-50">
-                  <div className="flex justify-between items-start mb-2">
+                  <div className="flex justify-between items-start mb-2 flex-wrap gap-2">
                     <div>
                       <h4 className="font-semibold">{request.user_name || 'אורח'}</h4>
                       <p className="text-sm text-slate-600">{request.user_email}</p>

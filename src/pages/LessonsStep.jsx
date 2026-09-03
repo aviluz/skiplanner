@@ -34,6 +34,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ActualCostField from "@/components/ActualCostField";
+import { useActualCost, buildActualCostPayload, applyActualCostToDraft } from "@/hooks/useActualCost";
 
 const DRAFT_TRIP_KEY = 'draftTripPlan';
 const DRAFT_LESSONS_KEY = 'draftTripLessons';
@@ -48,6 +50,7 @@ export default function LessonsStep() {
   const [notes, setNotes] = useState("");
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const { actualCost, setActualCost } = useActualCost(trip, "lessons_details");
 
   useEffect(() => {
     loadData();
@@ -150,6 +153,7 @@ export default function LessonsStep() {
         const draftData = JSON.parse(savedDraft);
         draftData.steps_completed = { ...draftData.steps_completed, lessons: true };
         draftData.lessons_details = lessonsDetails;
+        applyActualCostToDraft(draftData, "lessons_details", actualCost);
         localStorage.setItem(DRAFT_TRIP_KEY, JSON.stringify(draftData));
       }
       localStorage.setItem(DRAFT_LESSONS_KEY, JSON.stringify(lessonsDetails));
@@ -159,9 +163,16 @@ export default function LessonsStep() {
     }
 
     try {
+      const acPayload = await buildActualCostPayload(trip, "lessons", "lessons_details", actualCost);
+      const finalLessonsDetails = { ...lessonsDetails };
+      if (acPayload.lessons_details) {
+        finalLessonsDetails.actual_cost = acPayload.lessons_details.actual_cost;
+        finalLessonsDetails.actual_currency = acPayload.lessons_details.actual_currency;
+      }
       await db.entities.TripPlan.update(trip.id, {
         ...trip,
-        lessons_details: lessonsDetails,
+        lessons_details: finalLessonsDetails,
+        ...(acPayload.budget_items ? { budget_items: acPayload.budget_items } : {}),
         steps_completed: { ...trip.steps_completed, lessons: true }
       });
       toast.success("פרטי השיעורים נשמרו בהצלחה!");
@@ -359,6 +370,15 @@ export default function LessonsStep() {
             </CardContent>
           </Card>
         )}
+
+        {/* Actual Cost */}
+        <div className="mb-6">
+          <ActualCostField
+            value={actualCost}
+            onChange={setActualCost}
+            baseCurrency={trip?.budget_currency || "EUR"}
+          />
+        </div>
 
         {/* Navigation */}
         <div className="flex flex-col-reverse sm:flex-row justify-between items-center gap-4 mt-8">

@@ -26,6 +26,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ActualCostField from "@/components/ActualCostField";
+import { useActualCost, buildActualCostPayload, applyActualCostToDraft } from "@/hooks/useActualCost";
 
 const DRAFT_TRIP_KEY = 'draftTripPlan';
 const DRAFT_INSURANCE_KEY = 'draftTripInsurance';
@@ -38,6 +40,7 @@ export default function InsuranceStep() {
   const [insuranceProviders, setInsuranceProviders] = useState([]);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const { actualCost, setActualCost } = useActualCost(trip, "insurance_details");
 
   useEffect(() => {
     loadInitialData();
@@ -112,6 +115,7 @@ export default function InsuranceStep() {
       if (savedDraft) {
         const draftData = JSON.parse(savedDraft);
         draftData.steps_completed = { ...draftData.steps_completed, insurance: true };
+        applyActualCostToDraft(draftData, "insurance_details", actualCost);
         localStorage.setItem(DRAFT_TRIP_KEY, JSON.stringify(draftData));
       }
       localStorage.setItem(DRAFT_INSURANCE_KEY, JSON.stringify({ completed: true }));
@@ -120,8 +124,10 @@ export default function InsuranceStep() {
     }
 
     try {
+      const acPayload = await buildActualCostPayload(trip, "insurance", "insurance_details", actualCost);
       await db.entities.TripPlan.update(trip.id, {
         ...trip,
+        ...acPayload,
         steps_completed: { ...trip.steps_completed, insurance: true }
       });
       navigate(createPageUrl(`EquipmentStep?tripId=${trip.id}`));
@@ -220,6 +226,15 @@ export default function InsuranceStep() {
           ))}
         </div>
         
+        {/* Actual Cost */}
+        <div className="mb-6">
+          <ActualCostField
+            value={actualCost}
+            onChange={setActualCost}
+            baseCurrency={trip?.budget_currency || "EUR"}
+          />
+        </div>
+
         {/* Navigation */}
         <div className="flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
           <Link to={isGuestMode ? createPageUrl(`AccommodationStep?guest=1`) : createPageUrl(`AccommodationStep?tripId=${trip.id}`)} className="w-full sm:w-auto">

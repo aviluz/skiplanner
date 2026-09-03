@@ -35,6 +35,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ActualCostField from "@/components/ActualCostField";
+import { useActualCost, buildActualCostPayload, applyActualCostToDraft } from "@/hooks/useActualCost";
 
 const DRAFT_TRIP_KEY = 'draftTripPlan';
 const DRAFT_EQUIPMENT_KEY = 'draftTripEquipment';
@@ -48,6 +50,7 @@ export default function EquipmentStep() {
   const [loading, setLoading] = useState(true);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const { actualCost, setActualCost } = useActualCost(trip, "equipment_details");
 
   useEffect(() => {
     loadData();
@@ -131,6 +134,7 @@ export default function EquipmentStep() {
       if (savedDraft) {
         const draftData = JSON.parse(savedDraft);
         draftData.steps_completed = { ...draftData.steps_completed, equipment: true };
+        applyActualCostToDraft(draftData, "equipment_details", actualCost);
         localStorage.setItem(DRAFT_TRIP_KEY, JSON.stringify(draftData));
       }
       localStorage.setItem(DRAFT_EQUIPMENT_KEY, JSON.stringify({ completed: true }));
@@ -139,8 +143,10 @@ export default function EquipmentStep() {
     }
 
     try {
+      const acPayload = await buildActualCostPayload(trip, "equipment", "equipment_details", actualCost);
       await db.entities.TripPlan.update(trip.id, {
         ...trip,
+        ...acPayload,
         steps_completed: { ...trip.steps_completed, equipment: true }
       });
       navigate(createPageUrl(`LessonsStep?tripId=${trip.id}`));
@@ -332,6 +338,15 @@ export default function EquipmentStep() {
               </Card>
             ))}
           </div>
+        </div>
+
+        {/* Actual Cost */}
+        <div className="mb-6">
+          <ActualCostField
+            value={actualCost}
+            onChange={setActualCost}
+            baseCurrency={trip?.budget_currency || "EUR"}
+          />
         </div>
 
         {/* Navigation */}

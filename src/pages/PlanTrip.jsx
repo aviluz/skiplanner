@@ -193,6 +193,8 @@ export default function PlanTrip() {
   const [showGuestWarningDialog, setShowGuestWarningDialog] = useState(false);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
   const [draftTrip, setDraftTrip] = useState(null);
+  const [showResumeTripDialog, setShowResumeTripDialog] = useState(false);
+  const [resumeTrip, setResumeTrip] = useState(null);
   const [warnings, setWarnings] = useState([]);
 
   const returnDatePopoverTriggerRef = useRef(null);
@@ -301,6 +303,19 @@ export default function PlanTrip() {
             localStorage.removeItem(DRAFT_TRIP_KEY);
           }
         } else {
+          // אין טיוטת אורח — בדיקת טיול planning מהשרת למשתמש מחובר
+          if (userData && !sessionStorage.getItem('plantrip_resume_dismissed')) {
+            try {
+              const planningTrips = await db.entities.TripPlan.filter({ trip_status: 'planning' }, '-updated_date', 1);
+              if (planningTrips && planningTrips.length > 0) {
+                setResumeTrip(planningTrips[0]);
+                setShowResumeTripDialog(true);
+              }
+            } catch (e) {
+              console.error("Error fetching planning trips for resume", e);
+            }
+          }
+
           const destinationParam = urlParams.get('destination');
           if (destinationParam) {
             const destObject = normalizedDest.find(d => d.name === destinationParam); // Use normalizedDest
@@ -555,7 +570,9 @@ export default function PlanTrip() {
     if (savedStep !== null) {
       const stepIndex = parseInt(savedStep, 10);
       if (!isNaN(stepIndex) && stepIndex >= 0 && stepIndex < planningSteps.length) {
-        handleDiscardDraft();
+        // נקה רק את סמן השלב — השאר את טיוטת הטיול (DRAFT_TRIP_KEY) ב-localStorage
+        // כדי שעמוד השלב יוכל לקרוא את פרטי הטיול. הטיוטה תימחק רק ביצירת/שמירת הטיול או בזריקה ידנית.
+        localStorage.removeItem(DRAFT_STEP_KEY);
         toast.success("משחזר את ההתקדמות שלך...");
         navigate(createPageUrl(`${planningSteps[stepIndex].url}?guest=1`));
         return;
@@ -1189,6 +1206,31 @@ export default function PlanTrip() {
                 <AlertDialogFooter>
                   <AlertDialogCancel onClick={handleDiscardDraft}>להתחיל תכנון חדש</AlertDialogCancel>
                   <AlertDialogAction onClick={handleRestoreDraft}>כן, שחזר</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={showResumeTripDialog} onOpenChange={setShowResumeTripDialog}>
+              <AlertDialogContent dir="rtl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>המשך תכנון הטיול</AlertDialogTitle>
+                  <AlertDialogDescription asChild>
+                    <div className="space-y-1 text-right">
+                      <p>נמצא טיול בתכנון: <strong>{resumeTrip?.trip_name}</strong>{resumeTrip?.destination_name ? ` — ${resumeTrip.destination_name}` : ''}.</p>
+                      <p>האם תרצה/י להמשיך מאיפה שעצרת?</p>
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => {
+                    setShowResumeTripDialog(false);
+                    sessionStorage.setItem('plantrip_resume_dismissed', '1');
+                  }}>התחל חדש</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => {
+                    if (resumeTrip?.id) {
+                      navigate(createPageUrl(`TripDetails?id=${resumeTrip.id}`));
+                    }
+                  }}>המשך</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

@@ -30,6 +30,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ActualCostField from "@/components/ActualCostField";
+import { useActualCost, buildActualCostPayload, applyActualCostToDraft } from "@/hooks/useActualCost";
 
 const DRAFT_TRIP_KEY = 'draftTripPlan';
 const DRAFT_TRANSPORT_KEY = 'draftTripTransport';
@@ -41,6 +43,7 @@ export default function TransferStep() {
   const [loading, setLoading] = useState(true);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const { actualCost, setActualCost } = useActualCost(trip, "transfer_details");
 
   useEffect(() => {
     loadData();
@@ -123,6 +126,7 @@ export default function TransferStep() {
         const draftData = JSON.parse(savedDraft);
         draftData.steps_completed = { ...draftData.steps_completed, transport: true };
         draftData.transfer_details = { completed_date: new Date().toISOString() };
+        applyActualCostToDraft(draftData, "transfer_details", actualCost);
         localStorage.setItem(DRAFT_TRIP_KEY, JSON.stringify(draftData));
       }
       localStorage.setItem(DRAFT_TRANSPORT_KEY, JSON.stringify({ type: 'transfer', completed: true }));
@@ -132,8 +136,10 @@ export default function TransferStep() {
 
     // מצב רגיל
     try {
+      const acPayload = await buildActualCostPayload(trip, "transfer", "transfer_details", actualCost);
       await db.entities.TripPlan.update(trip.id, {
         ...trip,
+        ...acPayload,
         steps_completed: { ...trip.steps_completed, transport: true }
       });
       navigate(createPageUrl(`AccommodationStep?tripId=${trip.id}`));
@@ -281,6 +287,15 @@ export default function TransferStep() {
             )}
           </CardContent>
         </Card>
+
+        {/* Actual Cost */}
+        <div className="mb-8">
+          <ActualCostField
+            value={actualCost}
+            onChange={setActualCost}
+            baseCurrency={trip?.budget_currency || "EUR"}
+          />
+        </div>
 
         {/* Navigation */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">

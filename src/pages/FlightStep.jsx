@@ -33,6 +33,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import ActualCostField from "@/components/ActualCostField";
+import { useActualCost, buildActualCostPayload, applyActualCostToDraft } from "@/hooks/useActualCost";
 
 const DRAFT_TRIP_KEY = 'draftTripPlan';
 const DRAFT_FLIGHTS_KEY = 'draftTripFlights';
@@ -58,6 +60,7 @@ export default function FlightStep() {
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [user, setUser] = useState(null);
+  const { actualCost, setActualCost } = useActualCost(trip, "flight_details");
 
   useEffect(() => {
     loadTrip();
@@ -155,6 +158,7 @@ export default function FlightStep() {
       if (savedDraft) {
         const draftData = JSON.parse(savedDraft);
         draftData.steps_completed = { ...draftData.steps_completed, flights: true };
+        applyActualCostToDraft(draftData, "flight_details", actualCost);
         localStorage.setItem(DRAFT_TRIP_KEY, JSON.stringify(draftData));
       }
       
@@ -169,8 +173,10 @@ export default function FlightStep() {
 
     // מצב רגיל - עדכון בשרת
     try {
+      const acPayload = await buildActualCostPayload(trip, "flights", "flight_details", actualCost);
       await db.entities.TripPlan.update(trip.id, {
         ...trip,
+        ...acPayload,
         steps_completed: { ...trip.steps_completed, flights: true }
       });
 
@@ -386,6 +392,15 @@ export default function FlightStep() {
                   </div>
               </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Actual Cost */}
+        <motion.div variants={itemVariants} className="mb-6">
+          <ActualCostField
+            value={actualCost}
+            onChange={setActualCost}
+            baseCurrency={trip?.budget_currency || "EUR"}
+          />
         </motion.div>
 
         {/* Navigation */}

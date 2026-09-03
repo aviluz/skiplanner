@@ -22,6 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ActualCostField from "@/components/ActualCostField";
+import { useActualCost, buildActualCostPayload, applyActualCostToDraft } from "@/hooks/useActualCost";
 
 const DRAFT_TRIP_KEY = 'draftTripPlan';
 const DRAFT_TRANSPORT_KEY = 'draftTripTransport';
@@ -34,6 +36,7 @@ export default function CarStep() {
   const [loading, setLoading] = useState(true);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const { actualCost, setActualCost } = useActualCost(trip, "car_rental_details");
 
   useEffect(() => {
     loadData();
@@ -152,6 +155,7 @@ export default function CarStep() {
           provider_name: selectedProvider?.name,
           completed_date: new Date().toISOString()
         };
+        applyActualCostToDraft(draftData, "car_rental_details", actualCost);
         localStorage.setItem(DRAFT_TRIP_KEY, JSON.stringify(draftData));
       }
       localStorage.setItem(DRAFT_TRANSPORT_KEY, JSON.stringify({
@@ -166,13 +170,17 @@ export default function CarStep() {
 
     // מצב רגיל
     try {
+      const acPayload = await buildActualCostPayload(trip, "car", "car_rental_details", actualCost);
+      const carDetails = {
+        ...(acPayload.car_rental_details || {}),
+        provider_id: selectedProvider?.id,
+        provider_name: selectedProvider?.name,
+        completed_date: new Date().toISOString()
+      };
       await db.entities.TripPlan.update(trip.id, {
         ...trip,
-        car_rental_details: {
-          provider_id: selectedProvider?.id,
-          provider_name: selectedProvider?.name,
-          completed_date: new Date().toISOString()
-        },
+        car_rental_details: carDetails,
+        ...(acPayload.budget_items ? { budget_items: acPayload.budget_items } : {}),
         steps_completed: { ...trip.steps_completed, transport: true }
       });
       toast.success("פרטי השכרת הרכב נשמרו בהצלחה!");
@@ -347,6 +355,15 @@ export default function CarStep() {
             </CardContent>
           </Card>
         )}
+
+        {/* Actual Cost */}
+        <div className="mb-6">
+          <ActualCostField
+            value={actualCost}
+            onChange={setActualCost}
+            baseCurrency={trip?.budget_currency || "EUR"}
+          />
+        </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
