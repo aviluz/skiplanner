@@ -59,6 +59,9 @@ import ScrollToTop from "@/components/ScrollToTop";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
 import VipNotificationBell from "@/components/VipNotificationBell";
 import SeoHead from "@/components/SeoHead";
+import GuidesContentDropdown from "@/components/GuidesContentDropdown";
+import { ChevronDown as ChevronDownIcon } from "lucide-react";
+import { useSiteSettings } from "@/lib/SiteSettingsContext";
 
 const navigationItems = [
   {
@@ -97,19 +100,15 @@ const navigationItems = [
     icon: Tag,
   },
   {
-    title: "צ'ק ליסט ציוד",
-    url: createPageUrl("Guides?tab=checklist"),
-    icon: CheckCircle,
+    title: "מדריכים ותוכן",
+    url: createPageUrl("Guides"),
+    icon: BookOpen,
+    isGuidesAccordion: true,
   },
   {
     title: "ביטוחים",
     url: createPageUrl("Insurances"),
     icon: Shield,
-  },
-  {
-    title: "מדריכים",
-    url: createPageUrl("Guides"),
-    icon: BookOpen,
   },
   {
     title: "קישורים מומלצים",
@@ -149,11 +148,8 @@ const headerNavigationItems = [
   { title: "יעדים מומלצים", url: createPageUrl("RecommendedDestinations") },
   { title: "הטיולים שלי", url: createPageUrl("MyTrips") },
   { title: "דילים לציוד", url: createPageUrl("SkiDeals") },
-  { title: "צ'ק ליסט", url: createPageUrl("Guides?tab=checklist") },
   { title: "ביטוחים", url: createPageUrl("Insurances") },
   { title: "קישורים מומלצים", url: createPageUrl("RecommendedLinks") },
-  { title: "מדריכים", url: createPageUrl("Guides") },
-  { title: "VIP", url: createPageUrl("VipForm"), isVip: true },
 ];
 
 const DesktopNavLinkButton = ({ item, isCurrentPage }) => (
@@ -190,9 +186,12 @@ export default function Layout({ children, currentPageName }) {
     googleVerification: ""
   });
   const [loading, setLoading] = useState(true);
+  const { settings: settingsMap, ensureLoaded: ensureSettingsLoaded } = useSiteSettings();
   const navRef = React.useRef(null);
   const [hasScrollHintPlayed, setHasScrollHintPlayed] = useState(false);
   const [showScrollHint, setShowScrollHint] = useState({ left: false, right: false });
+  const [mobileGuidesOpen, setMobileGuidesOpen] = useState(false);
+  const [menuArticles, setMenuArticles] = useState([]);
 
   useEffect(() => {
     // Scroll hint animation - plays once on mount
@@ -248,43 +247,21 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   useEffect(() => {
+    ensureSettingsLoaded();
+  }, [ensureSettingsLoaded]);
+
+  useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [userData, settingsData, legalDocs] = await Promise.all([
+        const [userData, legalDocs] = await Promise.all([
           db.auth.me().catch(() => null),
-          db.entities.SiteSettings.list(),
           db.entities.LegalDocument.filter({ is_active: true, show_in_footer: true }).catch(() => [])
         ]);
-        
+
         setUser(userData);
-        
-        const settingsMap = settingsData.reduce((acc, s) => ({ ...acc, [s.setting_name]: s.value }), {});
+
         const sortedDocs = (legalDocs || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-        
-        setSiteSettings(prev => ({
-          ...prev,
-          logoText: settingsMap.logo_text || "SkiPlanner",
-          logoImageUrl: settingsMap.logo_image_url || "",
-          whatsappSupport: settingsMap.whatsapp_support || "",
-          vipEmail: settingsMap.vip_email || "SkiPlanner4u@gmail.com",
-          accessibilityButtonLink: settingsMap.accessibility_button_link || "",
-          footerLegalDocs: sortedDocs,
-          seoTitles: {
-            Home: settingsMap.seo_home_title || "",
-            Destinations: settingsMap.seo_destinations_title || "",
-            PlanTrip: settingsMap.seo_plantrip_title || "",
-            Guides: settingsMap.seo_guides_title || "",
-            Insurances: settingsMap.seo_insurances_title || "",
-          },
-          seoDescriptions: {
-            Home: settingsMap.seo_home_description || "",
-            Destinations: settingsMap.seo_destinations_description || "",
-            PlanTrip: settingsMap.seo_plantrip_description || "",
-            Guides: settingsMap.seo_guides_description || "",
-            Insurances: settingsMap.seo_insurances_description || "",
-          },
-          googleVerification: settingsMap.google_site_verification || "",
-        }));
+        setSiteSettings(prev => ({ ...prev, footerLegalDocs: sortedDocs }));
       } catch (error) {
         console.error("Failed to load initial data:", error);
       } finally {
@@ -293,6 +270,42 @@ export default function Layout({ children, currentPageName }) {
     };
     fetchInitialData();
   }, []);
+
+  // בניית הגדרות נגזרות מה-Context המשותף (ללא קריאת Entity נוספת)
+  useEffect(() => {
+    let parsedMenuArticles = [];
+    try {
+      parsedMenuArticles = JSON.parse(settingsMap.articles_menu_items || "[]");
+      if (!Array.isArray(parsedMenuArticles)) parsedMenuArticles = [];
+    } catch { parsedMenuArticles = []; }
+    setMenuArticles(parsedMenuArticles);
+
+    setSiteSettings(prev => ({
+      ...prev,
+      logoText: settingsMap.logo_text || "SkiPlanner",
+      logoImageUrl: settingsMap.logo_image_url || "",
+      whatsappSupport: settingsMap.whatsapp_support || "",
+      vipEmail: settingsMap.vip_email || "SkiPlanner4u@gmail.com",
+      accessibilityButtonLink: settingsMap.accessibility_button_link || "",
+      seoTitles: {
+        Home: settingsMap.seo_home_title || "",
+        Destinations: settingsMap.seo_destinations_title || "",
+        PlanTrip: settingsMap.seo_plantrip_title || "",
+        Guides: settingsMap.seo_guides_title || "",
+        Articles: settingsMap.seo_articles_title || "",
+        Insurances: settingsMap.seo_insurances_title || "",
+      },
+      seoDescriptions: {
+        Home: settingsMap.seo_home_description || "",
+        Destinations: settingsMap.seo_destinations_description || "",
+        PlanTrip: settingsMap.seo_plantrip_description || "",
+        Guides: settingsMap.seo_guides_description || "",
+        Articles: settingsMap.seo_articles_description || "",
+        Insurances: settingsMap.seo_insurances_description || "",
+      },
+      googleVerification: settingsMap.google_site_verification || "",
+    }));
+  }, [settingsMap]);
 
   const handleLogout = async () => {
     try {
@@ -495,27 +508,21 @@ export default function Layout({ children, currentPageName }) {
             <span className="text-lg sm:text-2xl font-bold text-slate-800 whitespace-nowrap">{siteSettings.logoText}</span>
           </Link>
 
-          <div className="hidden lg:block relative flex-1 min-w-0">
-            <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white/95 to-transparent pointer-events-none z-10 transition-opacity ${showScrollHint.right ? 'opacity-100' : 'opacity-60'}`} />
-            <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white/95 to-transparent pointer-events-none z-10 transition-opacity ${showScrollHint.left ? 'opacity-100' : 'opacity-60'}`} />
-            {showScrollHint.right && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 animate-pulse pointer-events-none z-20">
-                <ChevronRight className="w-5 h-5 drop-shadow-lg" />
-              </div>
-            )}
-            {showScrollHint.left && (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 animate-pulse pointer-events-none z-20">
-                <ChevronLeft className="w-5 h-5 drop-shadow-lg" />
-              </div>
-            )}
-            <nav ref={navRef} className="flex items-center gap-0.5 xl:gap-1 2xl:gap-2 overflow-x-auto scrollbar-hide px-10">
+          <div className="hidden lg:flex flex-1 min-w-0 items-center gap-0.5 xl:gap-1 2xl:gap-2">
+            <div className="flex items-center gap-0.5 xl:gap-1 2xl:gap-2 overflow-x-auto scrollbar-hide min-w-0 flex-1">
               {headerNavigationItems.map((item) => (
                 <DesktopNavLinkButton key={item.title} item={item} isCurrentPage={isCurrentPage} />
               ))}
-            </nav>
+            </div>
+            <GuidesContentDropdown menuArticles={menuArticles} isCurrentPage={isCurrentPage} />
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            <Link to={createPageUrl("VipForm")} className="flex-shrink-0">
+              <Button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700 rounded-full px-3 sm:px-4 text-xs sm:text-sm h-auto py-1.5">
+                VIP
+              </Button>
+            </Link>
             {user?.role === 'admin' && <VipNotificationBell user={user} />}
             {user ? (
               <DropdownMenu>
@@ -651,6 +658,51 @@ export default function Layout({ children, currentPageName }) {
                       isCurrentPage = currentFullPath === item.url;
                     } else {
                       isCurrentPage = currentPath === itemPath && !currentSearch;
+                    }
+
+                    if (item.isGuidesAccordion) {
+                      return (
+                        <li key={item.title}>
+                          <button
+                            type="button"
+                            onClick={() => setMobileGuidesOpen(prev => !prev)}
+                            aria-expanded={mobileGuidesOpen}
+                            className={`flex flex-row-reverse items-center justify-between gap-3 p-3 rounded-lg transition-colors text-right w-full ${
+                              mobileGuidesOpen ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:bg-slate-200"
+                            }`}
+                          >
+                            <ChevronDownIcon className={`w-5 h-5 shrink-0 transition-transform ${mobileGuidesOpen ? "rotate-180" : ""}`} />
+                            <span className="flex-grow flex flex-row-reverse items-center gap-3">
+                              <item.icon className="w-5 h-5 shrink-0" />
+                              {item.title}
+                            </span>
+                          </button>
+                          {mobileGuidesOpen && (
+                            <ul className="mt-1 mr-4 space-y-1">
+                              {[
+                                { to: createPageUrl("Guides"), label: "המדריך לחופשת סקי" },
+                                { to: createPageUrl("Articles"), label: "מאמרים וסקירות" },
+                                { to: createPageUrl("Guides?tab=checklist"), label: "צ'ק ליסט ציוד" },
+                                { to: createPageUrl("Guides?tab=preparation"), label: "הכנה לחופשה" },
+                                { to: createPageUrl("Guides?tab=weather"), label: "מזג אוויר באתרי סקי" },
+                                { to: createPageUrl("Guides?tab=tips"), label: "טיפים" },
+                                { to: createPageUrl("Guides?tab=safety"), label: "בטיחות" },
+                                ...menuArticles.map(art => ({ to: art.url, label: art.title })),
+                              ].map((sub, i) => (
+                                <li key={i}>
+                                  <Link
+                                    to={sub.to}
+                                    onClick={closeMobileMenu}
+                                    className="block p-2.5 pr-4 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors text-right"
+                                  >
+                                    {sub.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      );
                     }
                     
                     return (

@@ -49,6 +49,7 @@
  */
 import About from './pages/About';
 import ArticlePage from './pages/ArticlePage';
+import Articles from './pages/Articles';
 import AccessibilityStatement from './pages/AccessibilityStatement';
 import AccommodationStep from './pages/AccommodationStep';
 import AdminClickTracking from './pages/AdminClickTracking';
@@ -88,6 +89,7 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "About": About,
     "ArticlePage": ArticlePage,
+    "Articles": Articles,
     "AccessibilityStatement": AccessibilityStatement,
     "AccommodationStep": AccommodationStep,
     "AdminClickTracking": AdminClickTracking,

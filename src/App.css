@@ -1,10 +1,4 @@
-{destination.total_piste_km && (
-  <div className="text-sm text-slate-700 mt-2">
-    <span className="font-semibold">סה"כ מסלולים:</span> {destination.total_piste_km} ק"מ
-    <div className="flex gap-2 mt-1">
-      {destination.blue_piste_km && <Badge variant="secondary" className="bg-blue-100 text-blue-800">כחול: {destination.blue_piste_km}</Badge>}
-      {destination.red_piste_km && <Badge variant="secondary" className="bg-red-100 text-red-800">אדום: {destination.red_piste_km}</Badge>}
-      {destination.black_piste_km && <Badge variant="secondary" className="bg-slate-800 text-white">שחור: {destination.black_piste_km}</Badge>}
-    </div>
-  </div>
-)}
+const load = async (force = false) => {
+  if (!force && articles.length > 0 && !isExpired(cacheTimestamp)) return;
+  // ... fetch logic
+}

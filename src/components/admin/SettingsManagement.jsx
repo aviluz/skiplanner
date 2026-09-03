@@ -44,6 +44,8 @@ export const KNOWN_SITE_SETTINGS = [
   { name: 'seo_plantrip_description', label: 'SEO | Meta Description — תכנון טיול', defaultValue: '' },
   { name: 'seo_guides_title', label: 'SEO | Meta Title — מדריכים', defaultValue: '' },
   { name: 'seo_guides_description', label: 'SEO | Meta Description — מדריכים', defaultValue: '' },
+  { name: 'seo_articles_title', label: 'SEO | Meta Title — מאמרים', defaultValue: '' },
+  { name: 'seo_articles_description', label: 'SEO | Meta Description — מאמרים', defaultValue: '' },
   { name: 'seo_insurances_title', label: 'SEO | Meta Title — ביטוחים', defaultValue: '' },
   { name: 'seo_insurances_description', label: 'SEO | Meta Description — ביטוחים', defaultValue: '' },
   { name: 'google_site_verification', label: 'קוד אימות Google Search Console', defaultValue: '' },

@@ -854,7 +854,7 @@ Return ONLY the JSON object, nothing else.`;
     { id: 'feedback', name: 'משוב', icon: MessageCircle },
     { id: 'click-tracking', name: 'נתוני הקלקות', icon: BarChart3 },
     { id: 'legal', name: 'מסמכים משפטיים', icon: BookLock },
-    { id: 'articles', name: 'מאמרים ומדריכים', icon: BookOpen },
+    { id: 'articles', name: 'מאמרים וסקירות', icon: BookOpen },
     { id: 'faq', name: 'שאלות נפוצות', icon: HelpCircle },
     { id: 'settings', name: 'הגדרות', icon: Settings },
   ];

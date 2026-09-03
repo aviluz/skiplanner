@@ -1,15 +1,68 @@
 const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Share2, Copy, ArrowRight, Calendar, Tag } from "lucide-react";
+import { Copy, ArrowRight, Calendar, Tag, Home as HomeIcon, BookOpen, AlertTriangle, RefreshCw, ChevronLeft } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
+import SeoHead from "@/components/SeoHead";
+import ArticleCard from "@/components/articles/ArticleCard";
+import RateLimitState from "@/components/RateLimitState";
+import { articleCanonical, isRateLimitError, extractRetryAfter, ARTICLE_SUMMARY_FIELDS } from "@/lib/articleUtils";
+
+const BASE_URL = "https://skiplanner.db.app";
+
+/**
+ * Fetch related articles using summary fields only (no content).
+ * Preserves related_article_ids order, dedup, excludes current, max 3.
+ * Fills from same category if not enough linked articles.
+ * Uses targeted queries ($in / $nin) instead of pulling the whole article pool.
+ */
+async function fetchRelatedArticles(article) {
+  const linkedIds = (article.related_article_ids || [])
+    .filter((rid) => rid && rid !== article.id)
+    .filter((rid, idx, arr) => arr.indexOf(rid) === idx);
+
+  let related = [];
+  if (linkedIds.length > 0) {
+    try {
+      const linked = await db.entities.BlogArticle.filter(
+        { id: { $in: linkedIds }, status: "published" },
+        "-published_at",
+        linkedIds.length,
+        0,
+        ARTICLE_SUMMARY_FIELDS
+      );
+      // Preserve related_article_ids order
+      const linkedMap = new Map((linked || []).map((a) => [a.id, a]));
+      related = linkedIds.map((rid) => linkedMap.get(rid)).filter(Boolean);
+    } catch {
+      related = [];
+    }
+  }
+
+  if (related.length < 3 && article.category) {
+    const excludeIds = [article.id, ...related.map((r) => r.id)];
+    try {
+      const fillers = await db.entities.BlogArticle.filter(
+        { status: "published", category: article.category, id: { $nin: excludeIds } },
+        "-published_at",
+        3 - related.length,
+        0,
+        ARTICLE_SUMMARY_FIELDS
+      );
+      related = [...related, ...(fillers || [])];
+    } catch {
+      // Failed to load fillers — keep what we have
+    }
+  }
+  return related.slice(0, 3);
+}
 
 export default function ArticlePage() {
   const location = useLocation();
@@ -21,51 +74,58 @@ export default function ArticlePage() {
   const [related, setRelated] = useState([]);
   const [toc, setToc] = useState([]);
   const [processedContent, setProcessedContent] = useState("");
-  const [loading, setLoading] = useState(true);
+  // status: 'loading' | 'not_found' | 'rate_limit' | 'error' | 'ready'
+  const [status, setStatus] = useState("loading");
+  const [retryAfter, setRetryAfter] = useState(null);
+  const [retryCounter, setRetryCounter] = useState(0);
+  const fetchAttemptedRef = useRef("");
 
   useEffect(() => {
-    loadArticle();
-  }, [slug, id]);
+    const currentKey = `${slug || ""}|${id || ""}|${retryCounter}`;
+    if (fetchAttemptedRef.current === currentKey) return;
+    fetchAttemptedRef.current = currentKey;
 
-  const loadArticle = async () => {
-    setLoading(true);
-    window.scrollTo(0, 0);
-    try {
-      let found = null;
-      if (id) {
-        const results = await db.entities.BlogArticle.filter({ id });
-        found = results?.[0] || null;
-      } else if (slug) {
-        const results = await db.entities.BlogArticle.filter({ slug });
-        found = results?.[0] || null;
-      }
-      if (found) {
+    (async () => {
+      setStatus("loading");
+      setArticle(null);
+      setRelated([]);
+      window.scrollTo(0, 0);
+      try {
+        // Fetch the single article WITH content (full record).
+        // id -> get(id) (full record); slug -> filter limit 1 (full record).
+        let found = null;
+        if (id) {
+          found = await db.entities.BlogArticle.get(id);
+        } else if (slug) {
+          const results = await db.entities.BlogArticle.filter({ slug }, undefined, 1);
+          found = results?.[0] || null;
+        }
+        if (!found) {
+          setStatus("not_found");
+          return;
+        }
         setArticle(found);
-        // Prefer manually linked articles; fall back to same-category articles
-        const linkedIds = (found.related_article_ids || []).filter((id) => id && id !== found.id);
-        let relatedData = [];
-        if (linkedIds.length > 0) {
-          const linked = await Promise.all(
-            linkedIds.map((rid) => db.entities.BlogArticle.filter({ id: rid }).then((r) => r?.[0] || null).catch(() => null))
-          );
-          relatedData = linked.filter((a) => a && a.status === "published");
+
+        // Related: targeted fetch, summary fields only (no content).
+        try {
+          const rel = await fetchRelatedArticles(found);
+          setRelated(rel);
+        } catch {
+          setRelated([]);
         }
-        if (relatedData.length < 3) {
-          const byCat = await db.entities.BlogArticle.filter({ category: found.category, status: "published" });
-          const fillers = byCat.filter((a) => a.id !== found.id && !relatedData.some((r) => r.id === a.id));
-          relatedData = [...relatedData, ...fillers].slice(0, 3);
+        setStatus("ready");
+      } catch (e) {
+        if (isRateLimitError(e)) {
+          setRetryAfter(extractRetryAfter(e));
+          setStatus("rate_limit");
+        } else {
+          setStatus("error");
         }
-        setRelated(relatedData);
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+  }, [slug, id, retryCounter]);
 
   // Build table of contents AND inject IDs into the HTML content in one pass
-  // (baking IDs into the HTML string ensures they survive re-renders)
   useEffect(() => {
     if (!article?.content) {
       setToc([]);
@@ -84,14 +144,18 @@ export default function ArticlePage() {
     setProcessedContent(doc.body.innerHTML);
   }, [article]);
 
+  const handleRetry = () => {
+    fetchAttemptedRef.current = "";
+    setRetryCounter((c) => c + 1);
+  };
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     sonnerToast.success("הקישור הועתק!");
   };
 
-  const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent((article?.title || "") + " " + window.location.href)}`;
-
-  if (loading) {
+  // ── Loading ──
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
@@ -99,30 +163,80 @@ export default function ArticlePage() {
     );
   }
 
-  if (!article) {
+  // ── Rate limit ──
+  if (status === "rate_limit") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center p-6" dir="rtl">
-        <h1 className="text-2xl font-bold text-slate-700">המאמר לא נמצא</h1>
-        <Link to={createPageUrl("Guides")}><Button>חזרה למדריכים</Button></Link>
+        <RateLimitState
+          retryAfter={retryAfter || 60}
+          onRetry={handleRetry}
+          message="לא הצלחנו לטעון כרגע את המאמר בגלל עומס זמני."
+        >
+          <Link to={createPageUrl("Articles")} className="text-blue-600 hover:underline text-sm mt-2">
+            חזרה לכל המאמרים
+          </Link>
+        </RateLimitState>
       </div>
     );
   }
 
-  // JSON-LD Schema
+  // ── General error ──
+  if (status === "error") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center p-6" dir="rtl">
+        <AlertTriangle className="w-12 h-12 text-red-400" />
+        <h1 className="text-xl font-bold text-slate-700">שגיאה בטעינת המאמר</h1>
+        <p className="text-slate-500">אירעה שגיאה. אנא נסו שוב מאוחר יותר.</p>
+        <Button variant="outline" onClick={handleRetry}>
+          <RefreshCw className="w-4 h-4 ml-2" />
+          נסה שוב
+        </Button>
+        <Link to={createPageUrl("Articles")} className="text-blue-600 hover:underline text-sm mt-2">
+          חזרה לכל המאמרים
+        </Link>
+      </div>
+    );
+  }
+
+  // ── Not found (only when call succeeded but no article returned) ──
+  if (status === "not_found" || !article) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center p-6" dir="rtl">
+        <BookOpen className="w-12 h-12 text-slate-300" />
+        <h1 className="text-2xl font-bold text-slate-700">המאמר לא נמצא</h1>
+        <Link to={createPageUrl("Articles")}>
+          <Button>חזרה לכל המאמרים</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const canonical = article.canonical_url || articleCanonical(article, BASE_URL);
+  const ogTitle = article.og_title || article.meta_title || article.title;
+  const ogDescription = article.og_description || article.meta_description || article.excerpt || "";
+  const ogImage = article.og_image || article.featured_image_url || "";
+
+  // JSON-LD Structured Data
   const schemaMarkup = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: article.meta_title || article.title,
     description: article.meta_description || article.excerpt,
-    image: article.featured_image_url,
+    image: ogImage,
     datePublished: article.published_at || article.created_date,
     dateModified: article.updated_date,
-    author: { "@type": "Organization", name: "SkiPlanner" },
+    author: {
+      "@type": article.author_name ? "Person" : "Organization",
+      name: article.author_name || "SkiPlanner",
+    },
+    mainEntityOfPage: canonical,
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50" dir="rtl">
+      <SeoHead title={article.meta_title || article.title} description={article.meta_description || article.excerpt} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaMarkup) }} />
+      <CanonicalAndOg canonical={canonical} ogTitle={ogTitle} ogDescription={ogDescription} ogImage={ogImage} />
 
       {/* Hero Image */}
       {article.featured_image_url && (
@@ -136,14 +250,27 @@ export default function ArticlePage() {
       )}
 
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
+        {/* Breadcrumbs */}
+        <nav className="flex items-center gap-1 text-xs text-slate-400 mb-6 flex-row-reverse justify-end" aria-label="breadcrumb">
+          <Link to={createPageUrl("Home")} className="flex items-center gap-1 hover:text-blue-600">
+            <HomeIcon className="w-3 h-3" />
+            דף הבית
+          </Link>
+          <ChevronLeft className="w-3 h-3" />
+          <Link to={createPageUrl("Articles")} className="hover:text-blue-600">
+            מאמרים וסקירות
+          </Link>
+          <ChevronLeft className="w-3 h-3" />
+          <span className="text-slate-600 truncate max-w-[200px]">{article.title}</span>
+        </nav>
 
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* MAIN CONTENT */}
           <article className="flex-1 min-w-0">
             {/* Back link */}
-            <Link to={createPageUrl("Guides?tab=articles")} className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm mb-6">
+            <Link to={createPageUrl("Articles")} className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm mb-6">
               <ArrowRight className="w-4 h-4" />
-              חזרה למדריכים
+              חזרה לכל המאמרים
             </Link>
 
             {/* Meta badges */}
@@ -158,6 +285,11 @@ export default function ArticlePage() {
                 <Badge variant="outline" className="text-slate-500">
                   <Calendar className="w-3 h-3 ml-1" />
                   {new Date(article.published_at).toLocaleDateString("he-IL")}
+                </Badge>
+              )}
+              {article.author_name && (
+                <Badge variant="outline" className="text-slate-500">
+                  {article.author_name}
                 </Badge>
               )}
             </div>
@@ -191,34 +323,21 @@ export default function ArticlePage() {
             <style>{`
               .article-content { direction: rtl; text-align: right; }
               .article-content h2 {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: #1e293b;
-                margin-top: 2rem;
-                margin-bottom: 1rem;
-                scroll-margin-top: 80px;
+                font-size: 1.5rem; font-weight: 700; color: #1e293b;
+                margin-top: 2rem; margin-bottom: 1rem; scroll-margin-top: 80px;
               }
               .article-content h3 {
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: #1e293b;
-                margin-top: 1.5rem;
-                margin-bottom: 0.75rem;
+                font-size: 1.25rem; font-weight: 600; color: #1e293b;
+                margin-top: 1.5rem; margin-bottom: 0.75rem;
               }
               .article-content p { margin-bottom: 1.25rem; }
-              .article-content ul, .article-content ol {
-                padding-right: 1.5rem;
-                margin-bottom: 1.25rem;
-              }
+              .article-content ul, .article-content ol { padding-right: 1.5rem; margin-bottom: 1.25rem; }
               .article-content li { margin-bottom: 0.4rem; }
               .article-content img { border-radius: 0.75rem; max-width: 100%; margin: 1.5rem 0; }
               .article-content a { color: #2563eb; text-decoration: underline; }
               .article-content blockquote {
-                border-right: 4px solid #3b82f6;
-                padding-right: 1rem;
-                color: #475569;
-                font-style: italic;
-                margin: 1.5rem 0;
+                border-right: 4px solid #3b82c6; padding-right: 1rem;
+                color: #475569; font-style: italic; margin: 1.5rem 0;
               }
             `}</style>
           </article>
@@ -232,7 +351,7 @@ export default function ArticlePage() {
                   <p className="font-semibold text-slate-700 mb-3 text-sm">שיתוף המאמר</p>
                   <div className="flex flex-col gap-2">
                     <a
-                      href={whatsappShareUrl}
+                      href={`https://wa.me/?text=${encodeURIComponent((article.title || "") + " " + window.location.href)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white rounded-lg px-3 py-2 text-sm transition-colors"
@@ -283,29 +402,7 @@ export default function ArticlePage() {
             <h2 className="text-xl font-bold text-slate-800 mb-6">כתבות נוספות שעשויות לעניין אותך</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {related.map((rel) => (
-                <Link key={rel.id} to={createPageUrl(`ArticlePage?id=${rel.id}`)}>
-                  <Card className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 h-full">
-                    {rel.featured_image_url && (
-                      <div className="h-40 overflow-hidden">
-                        <img
-                          src={rel.featured_image_url}
-                          alt={rel.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
-                    <CardContent className="p-4">
-                      {rel.category && (
-                        <Badge variant="outline" className="text-blue-700 border-blue-300 bg-blue-50 mb-2 text-xs">
-                          {rel.category}
-                        </Badge>
-                      )}
-                      <h3 className="font-bold text-slate-800 mb-1 leading-snug">{rel.title}</h3>
-                      {rel.excerpt && <p className="text-sm text-slate-500 line-clamp-2">{rel.excerpt}</p>}
-                      <span className="text-blue-600 text-sm mt-2 inline-block">לקריאת המדריך ←</span>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <ArticleCard key={rel.id} article={rel} showDate showAuthor showExcerpt />
               ))}
             </div>
           </div>
@@ -313,4 +410,32 @@ export default function ArticlePage() {
       </div>
     </div>
   );
+}
+
+// Lightweight canonical + OG tag manager (no visual output)
+function CanonicalAndOg({ canonical, ogTitle, ogDescription, ogImage }) {
+  useEffect(() => {
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
+    link.href = canonical;
+
+    const setMeta = (attr, key, content) => {
+      if (!content) return;
+      let m = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!m) {
+        m = document.createElement("meta");
+        m.setAttribute(attr, key);
+        document.head.appendChild(m);
+      }
+      m.content = content;
+    };
+    setMeta("property", "og:title", ogTitle);
+    setMeta("property", "og:description", ogDescription);
+    if (ogImage) setMeta("property", "og:image", ogImage);
+  }, [canonical, ogTitle, ogDescription, ogImage]);
+  return null;
 }
