@@ -1,24 +1,15 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+אני רוצה לבצע עוד בדיקה אחת:
 
-import { Link, useLocation } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { CheckCircle, Mail, ArrowLeft, LogIn } from 'lucide-react';
+נסה לאתר בהיסטוריית הפרויקט מאז ההתחלת הקמת הפונקציה של תחזית מזג אוויר באתר, בקבצים הישנים, בגרסאות קודמות או בהוראות המקוריות של בניית רכיב מזג האוויר, האם ניתן לזהות מאיפה הגיעו במקור ערכי Base/Mid/Top של resortsData.
 
-export default function FeedbackPage() {
-  const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [user, setUser] = useState(null);
-  const location = useLocation();
+לדוגמה, עבור Cervinia קיימים בקוד:
+1524, 2050, 3480
 
-  useEffect(() => {
-    db.auth.me().then(setUser).catch(() => setUser(null));
-  }, []);
+המטרה היא להבין האם הערכים נלקחו במקור מ:
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+אתר מסוים
+API
+מאגר נתונים
+אתר סקי כמו Snow-Forecast
+או מקור אחר.

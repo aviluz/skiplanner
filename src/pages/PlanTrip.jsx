@@ -308,8 +308,17 @@ export default function PlanTrip() {
             try {
               const planningTrips = await db.entities.TripPlan.filter({ trip_status: 'planning' }, '-updated_date', 1);
               if (planningTrips && planningTrips.length > 0) {
-                setResumeTrip(planningTrips[0]);
-                setShowResumeTripDialog(true);
+                const trip = planningTrips[0];
+                const stepsCompleted = trip.steps_completed || {};
+                const stepKeyMap = { car: 'transport' };
+                const allStepsDone = planningSteps.every((s) => {
+                  const completedKey = stepKeyMap[s.key] || s.key;
+                  return stepsCompleted[completedKey] === true;
+                });
+                if (!allStepsDone) {
+                  setResumeTrip(trip);
+                  setShowResumeTripDialog(true);
+                }
               }
             } catch (e) {
               console.error("Error fetching planning trips for resume", e);
@@ -1228,7 +1237,15 @@ export default function PlanTrip() {
                   }}>התחל חדש</AlertDialogCancel>
                   <AlertDialogAction onClick={() => {
                     if (resumeTrip?.id) {
-                      navigate(createPageUrl(`TripDetails?id=${resumeTrip.id}`));
+                      const stepsCompleted = resumeTrip.steps_completed || {};
+                      const stepKeyMap = { car: 'transport' };
+                      const nextStep = planningSteps.find((s) => {
+                        const completedKey = stepKeyMap[s.key] || s.key;
+                        return !stepsCompleted[completedKey];
+                      });
+                      const targetUrl = nextStep ? nextStep.url : planningSteps[planningSteps.length - 1].url;
+                      setShowResumeTripDialog(false);
+                      navigate(createPageUrl(`${targetUrl}?tripId=${resumeTrip.id}`));
                     }
                   }}>המשך</AlertDialogAction>
                 </AlertDialogFooter>

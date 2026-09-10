@@ -459,9 +459,9 @@ export default function Home() {
         </motion.section>
       )}
 
-      {/* Mobile Navigation Grid - Only on Mobile */}
-      <section className="md:hidden px-4 py-6 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="grid grid-cols-2 gap-3">
+      {/* Navigation Grid - visible on all breakpoints */}
+      <section className="px-4 py-6 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Link to={createPageUrl("Destinations")}>
             <div className=" rounded-2xl  p-4  flex flex-col items-center justify-center text-center bg-slate-100/60  backdrop-blur-md  border border-sky-200 shadow-[0_4px_10px_rgba(0,0,0,0.05),_inset_0_0_8px_rgba(255,255,255,0.6)] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_6px_28px_rgba(0,0,0,0.12)] "> 
               <MapPin className="w-6 h-6 mb-1 text-sky-700" />

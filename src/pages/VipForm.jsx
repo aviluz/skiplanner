@@ -342,7 +342,7 @@ export default function VipForm() {
         const dateRange = value || { startDate: null, endDate: null };
         return (
           <div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm text-slate-600">תאריך יציאה</Label>
                 <Popover>
@@ -484,7 +484,7 @@ export default function VipForm() {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-6"
+      className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-6 overflow-x-hidden"
       dir="rtl"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -566,7 +566,7 @@ export default function VipForm() {
                 <CardTitle className="text-xl text-slate-800">תנאי הזמנת שירות VIP</CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 max-h-64 overflow-y-auto mb-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 max-h-64 overflow-y-auto overflow-x-hidden mb-4">
                   <div className="prose prose-sm prose-slate max-w-none">
                     <ReactMarkdown>
                       {vipTermsDocument.content}

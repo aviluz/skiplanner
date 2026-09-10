@@ -46,6 +46,8 @@ import LegalDocumentsTab from "@/components/admin/LegalDocumentsTab";
 import ArticlesManager from "@/components/admin/ArticlesManager";
 import AdminFeedbackTabContent from "@/components/admin/AdminFeedbackTab";
 import FaqManager from "@/components/admin/FaqManager";
+import ImportExportToolbar from "@/components/admin/ImportExportToolbar";
+import { entityConfigs } from "@/lib/importExportConfigs";
 const ReviewsInlineTab = ({ reviews, destinations, handleReviewStatusChange, confirmDelete }) => { const pending = reviews.filter(r => r.status==='pending'); return <div className="space-y-8"><Card className="border-0 shadow-xl"><CardHeader><CardTitle>ביקורות ממתינות ({pending.length})</CardTitle></CardHeader><CardContent className="space-y-4">{pending.length>0?<div className="grid md:grid-cols-2 gap-4">{pending.map(review => { const dest=destinations.find(d=>d.id===review.destination_id); return <Card key={review.id} className="flex flex-col"><CardHeader className="pb-2"><CardTitle className="text-lg flex justify-between">{review.user_nickname||review.created_by}<Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-300">ממתין</Badge></CardTitle><CardDescription>יעד: {dest?.name||'לא ידוע'} | דירוג: {review.general_rating}/5</CardDescription></CardHeader><CardContent className="flex-grow text-sm">{review.comment&&<p className="italic mb-2">"{review.comment}"</p>}{review.pros?.length>0&&<div><strong>אהב/ה:</strong> {review.pros.join(', ')}</div>}</CardContent><CardFooter className="flex gap-2 pt-0 justify-end"><Button onClick={()=>handleReviewStatusChange(review,'approved')} size="sm" variant="outline" className="text-green-600 border-green-600"><ThumbsUp className="w-4 h-4 ml-1"/>אישור</Button><Button onClick={()=>handleReviewStatusChange(review,'rejected')} size="sm" variant="outline" className="text-red-600 border-red-600"><ThumbsDown className="w-4 h-4 ml-1"/>דחייה</Button><Button size="sm" variant="destructive" onClick={()=>confirmDelete('Review',review.id)}><Trash2 className="w-4 h-4"/></Button></CardFooter></Card>;})}</div>:<p>אין ביקורות ממתינות.</p>}</CardContent></Card><Card className="border-0 shadow-xl"><CardHeader><CardTitle>כל הביקורות ({reviews.length})</CardTitle></CardHeader><CardContent className="space-y-4">{reviews.length>0?reviews.map(review=>{ const dest=destinations.find(d=>d.id===review.destination_id); const st=review.status==='approved'?'default':(review.status==='rejected'?'destructive':'secondary'); const stTxt=review.status==='approved'?'מאושר':(review.status==='rejected'?'נדחה':'ממתין'); return <div key={review.id} className="p-4 border rounded-lg bg-slate-50 space-y-3"><div className="flex justify-between items-start"><div><h4 className="font-semibold">{dest?.name||"יעד לא ידוע"}</h4><p className="text-xs text-slate-500">{review.user_nickname||review.created_by} | <Badge variant={st}>{stTxt}</Badge></p></div><div className="flex gap-2">{review.status!=='approved'&&<Button size="sm" variant="outline" onClick={()=>handleReviewStatusChange(review,'approved')}><ThumbsUp className="w-4 h-4"/></Button>}{review.status!=='rejected'&&<Button size="sm" variant="outline" onClick={()=>handleReviewStatusChange(review,'rejected')}><ThumbsDown className="w-4 h-4"/></Button>}<Button size="sm" variant="destructive" onClick={()=>confirmDelete('Review',review.id)}><Trash2 className="w-4 h-4"/></Button></div></div><div className="text-sm bg-white p-3 rounded-md"><p><strong>דירוג:</strong> {review.general_rating}/5</p>{review.comment&&<p><strong>תגובה:</strong> {review.comment}</p>}</div></div>; }):<p>אין ביקורות.</p>}</CardContent></Card></div>; };
 const ClickTrackingInlineTab = () => { const [data, setData] = React.useState([]); const [loading, setLoading] = React.useState(true); React.useEffect(()=>{ db.entities.ProductClick.list().then(d=>setData(d||[])).finally(()=>setLoading(false)); },[]); const total=data.reduce((s,c)=>s+Number(c.click_count||0),0); if(loading) return <Card className="border-0 shadow-xl"><CardContent className="p-6 flex justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"/></CardContent></Card>; return <Card className="border-0 shadow-xl"><CardHeader><CardTitle>נתוני הקלקות | סה"כ: {total}</CardTitle></CardHeader><CardContent><Table><TableHeader><TableRow><TableHead className="text-right">שם המוצר</TableHead><TableHead className="text-right">קליקים</TableHead><TableHead className="text-right">תאריך איפוס</TableHead></TableRow></TableHeader><TableBody>{data.map(item=><TableRow key={item.id}><TableCell>{item.product_name||'לא ידוע'}</TableCell><TableCell><Badge>{item.click_count||0}</Badge></TableCell><TableCell>{item.last_reset_date?new Date(item.last_reset_date).toLocaleDateString('he-IL'):'-'}</TableCell></TableRow>)}</TableBody></Table></CardContent></Card>; };
 
@@ -910,6 +912,7 @@ Return ONLY the JSON object, nothing else.`;
                     מצא יעד בעזרת AI
                   </Button>
                 </div>
+                <ImportExportToolbar config={entityConfigs.SkiDestination} data={destinations} onDataRefresh={loadGlobalData} />
               </CardHeader>
               <CardContent className="space-y-4">
                 {missingFields.length > 0 && (
@@ -993,7 +996,7 @@ Return ONLY the JSON object, nothing else.`;
                       </Select>
                   </div>
                 </div>
-                 <div className="grid md:grid-cols-4 gap-4">
+                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div><Label>עלות ממוצעת ללילה (€)</Label><Input type="number" value={editingDestination?.average_cost_per_night || ''} onChange={(e) => setEditingDestination({...(editingDestination || {}), average_cost_per_night: e.target.value})} /></div>
                     <div><Label>מחיר סקי-פס יומי (€)</Label><Input type="number" value={editingDestination?.ski_pass_price || ''} onChange={(e) => setEditingDestination({...(editingDestination || {}), ski_pass_price: e.target.value})} /></div>
                     <div><Label>גובה תחתון (מ')</Label><Input type="number" value={editingDestination?.lower_elevation || ''} onChange={(e) => setEditingDestination({...(editingDestination || {}), lower_elevation: e.target.value})} /></div>
@@ -1015,7 +1018,7 @@ Return ONLY the JSON object, nothing else.`;
                       </div>
                     </div>
                   </div>
-                  <div className="grid md:grid-cols-4 gap-4">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div><Label>סה"כ ק"מ מסלולים</Label><Input type="number" value={ (Number(editingDestination?.blue_piste_km || 0) + Number(editingDestination?.red_piste_km || 0) + Number(editingDestination?.black_piste_km || 0)) || ''} readOnly className="bg-slate-100" /></div>
                       <div><Label>ק"מ כחול</Label><Input type="number" value={editingDestination?.blue_piste_km || ''} onChange={e => setEditingDestination({...(editingDestination || {}), blue_piste_km: e.target.value})} /></div>
                       <div><Label>ק"מ אדום</Label><Input type="number" value={editingDestination?.red_piste_km || ''} onChange={e => setEditingDestination({...(editingDestination || {}), red_piste_km: e.target.value})} /></div>
@@ -1153,7 +1156,7 @@ Return ONLY the JSON object, nothing else.`;
                   </div>
                   <div>
                       <Label>קואורדינטות (קו רוחב, קו אורך)</Label>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <Input
                           type="number"
                           step="0.000001"
@@ -1289,7 +1292,10 @@ Return ONLY the JSON object, nothing else.`;
 
           <TabsContent value="airports">
             <Card className="border-0 shadow-xl">
-              <CardHeader><CardTitle>{editingAirport?.id ? "עריכת שדה תעופה קיים" : "הוספת שדה תעופה חדש"}</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>{editingAirport?.id ? "עריכת שדה תעופה קיים" : "הוספת שדה תעופה חדש"}</CardTitle>
+                <ImportExportToolbar config={entityConfigs.Airport} data={airports} onDataRefresh={loadGlobalData} />
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -1351,7 +1357,10 @@ Return ONLY the JSON object, nothing else.`;
 
           <TabsContent value="equipment">
             <Card className="border-0 shadow-xl">
-              <CardHeader><CardTitle>{editingEquipment?.id ? "עריכת ציוד קיים" : "הוספת ציוד חדש"}</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>{editingEquipment?.id ? "עריכת ציוד קיים" : "הוספת ציוד חדש"}</CardTitle>
+                <ImportExportToolbar config={entityConfigs.Equipment} data={equipment} onDataRefresh={loadGlobalData} />
+              </CardHeader>
               <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
@@ -1520,7 +1529,10 @@ Return ONLY the JSON object, nothing else.`;
               </Card>
 
               <Card className="border-0 shadow-xl mt-8">
-                <CardHeader><CardTitle>{editingProduct?.id ? "עריכת מוצר קיים" : "הוספת מוצר חדש"}</CardTitle></CardHeader>
+                <CardHeader>
+                  <CardTitle>{editingProduct?.id ? "עריכת מוצר קיים" : "הוספת מוצר חדש"}</CardTitle>
+                  <ImportExportToolbar config={entityConfigs.SkiProduct} data={skiProducts} extraData={{ categories: productCategories }} onDataRefresh={loadGlobalData} />
+                </CardHeader>
                 <CardContent className="space-y-6">
                   <Card>
                     <CardHeader><CardTitle>פרטי מוצר</CardTitle></CardHeader>

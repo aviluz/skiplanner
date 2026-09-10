@@ -181,9 +181,12 @@ export default function Guides() {
         .map((d) => ({
           id: d.id,
           name: d.name,
+          resort: d.name,
+          altNames: d.name_en ? [d.name_en] : [],
           country: d.country,
           lat: d.latitude,
-          lon: d.longitude
+          lon: d.longitude,
+          heights: [d.lower_elevation, d.upper_elevation].filter((h) => typeof h === "number" && h > 0)
         }));
       const key = (r) => `${(r.name || "").toLowerCase()}|${r.lat}|${r.lon}`;
       const baseMap = new Map(resortsData.map((r) => [key(r), r]));
