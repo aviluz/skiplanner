@@ -17,4 +17,3 @@ if (import.meta.hot) {
     window.parent?.postMessage({ type: 'sandbox:afterUpdate' }, '*');
   });
 }
-

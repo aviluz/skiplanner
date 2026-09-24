@@ -20,16 +20,3 @@ export default function DestinationMap({ latitude, longitude, name, zoom = 12 })
     <MapContainer
       center={[latitude, longitude]}
       zoom={zoom}
-      scrollWheelZoom={false}
-      style={{ height: "100%", width: "100%", borderRadius: "0.5rem" }}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      />
-      <Marker position={[latitude, longitude]} icon={skiIcon}>
-        <Popup>{name}</Popup>
-      </Marker>
-    </MapContainer>
-  );
-}

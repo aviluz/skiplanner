@@ -61,9 +61,6 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "data.participants": "{{user.full_name}}"
-        },
-        {
           "data.shared_with_emails": "{{user.email}}"
         },
         {

@@ -156,6 +156,15 @@ export default function ExpenseTracker() {
       key={group.id} 
       className="hover:shadow-lg transition-shadow cursor-pointer border-slate-200 relative"
       onClick={() => setSelectedGroup(group)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setSelectedGroup(group);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`קבוצת הוצאות: ${group.name}`}
     >
       {isShared && (
         <Badge className="absolute top-3 left-3 bg-amber-100 text-amber-700 border-amber-200">
@@ -219,20 +228,21 @@ export default function ExpenseTracker() {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>שם הטיול / הקבוצה</Label>
-                  <Input 
-                    value={newGroupName}
-                    onChange={(e) => setNewGroupName(e.target.value)}
-                    placeholder="לדוגמה: סקי באוסטריה 2025"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>מטבע ראשי</Label>
-                  <Select value={newGroupCurrency} onValueChange={setNewGroupCurrency}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                   <Label htmlFor="new-group-name">שם הטיול / הקבוצה</Label>
+                   <Input
+                     id="new-group-name"
+                     value={newGroupName}
+                     onChange={(e) => setNewGroupName(e.target.value)}
+                     placeholder="לדוגמה: סקי באוסטריה 2025"
+                   />
+                 </div>
+
+                 <div className="space-y-2">
+                   <Label htmlFor="new-group-currency">מטבע ראשי</Label>
+                   <Select value={newGroupCurrency} onValueChange={setNewGroupCurrency}>
+                     <SelectTrigger id="new-group-currency">
+                       <SelectValue />
+                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ILS">₪ שקל חדש</SelectItem>
                       <SelectItem value="EUR">€ יורו</SelectItem>
@@ -243,12 +253,13 @@ export default function ExpenseTracker() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>משתתפים (מופרד בפסיקים)</Label>
-                  <Input 
-                    value={participantsStr}
-                    onChange={(e) => setParticipantsStr(e.target.value)}
-                    placeholder="דני, יוסי, רונית, שירה..."
-                  />
+                   <Label htmlFor="new-group-participants">משתתפים (מופרד בפסיקים)</Label>
+                   <Input
+                     id="new-group-participants"
+                     value={participantsStr}
+                     onChange={(e) => setParticipantsStr(e.target.value)}
+                     placeholder="דני, יוסי, רונית, שירה..."
+                   />
                   <p className="text-xs text-slate-500">הכנס לפחות משתתף אחד. ניתן להוסיף משתתפים נוספים בהמשך.</p>
                 </div>
               </div>
@@ -261,7 +272,7 @@ export default function ExpenseTracker() {
         </div>
 
         {loading ? (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4" role="status" aria-busy="true" aria-label="טוען קבוצות הוצאות">
             {[1, 2].map(i => (
               <div key={i} className="h-40 bg-white rounded-xl shadow-sm animate-pulse" />
             ))}

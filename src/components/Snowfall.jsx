@@ -46,7 +46,7 @@ const Snowfall = () => {
           }
         `}
       </style>
-      <div className="snow-container">
+      <div className="snow-container" aria-hidden="true">
         {snowflakes}
       </div>
     </>

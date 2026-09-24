@@ -141,8 +141,8 @@ export default function SkiDeals() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6 flex items-center justify-center" role="status" aria-busy="true" aria-label="טוען דילים">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600" aria-hidden="true"></div>
       </div>
     );
   }
@@ -214,6 +214,15 @@ export default function SkiDeals() {
               <div
                 key={product.id}
                 onClick={() => handleProductClick(product)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleProductClick(product);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`${product.name}, מחיר $${Number(product.price).toFixed(2)}`}
                 className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden flex flex-col"
               >
                 <div className="relative bg-slate-50 h-40 sm:h-44 md:h-48 flex items-center justify-center p-2">
@@ -273,9 +282,10 @@ export default function SkiDeals() {
                             e.stopPropagation();
                             handleCopyCoupon(product.coupon_code);
                           }}
+                          aria-label={`העתק קוד קופון ${product.coupon_code}`}
                           className="h-7 w-7 p-0 flex-shrink-0"
                         >
-                          <Copy className="w-3 h-3" />
+                          <Copy className="w-3 h-3" aria-hidden="true" />
                         </Button>
                       </div>
                     )}

@@ -260,6 +260,9 @@
           "created_by_id": "{{user.id}}"
         },
         {
+          "data.created_by_group": "{{user.email}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -270,6 +273,9 @@
       "$or": [
         {
           "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.created_by_group": "{{user.email}}"
         },
         {
           "user_condition": {

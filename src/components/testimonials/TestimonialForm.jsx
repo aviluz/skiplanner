@@ -148,9 +148,9 @@ export default function TestimonialForm({ isOpen, onClose }) {
           </div>
 
           <div>
-            <Label>דירוג כוכבים</Label>
+            <Label id="rating-label">דירוג כוכבים</Label>
             <div className="text-xs text-slate-500 mb-2">בחר דירוג בין 1 ל-5 כוכבים</div>
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="group" aria-labelledby="rating-label">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
@@ -158,6 +158,8 @@ export default function TestimonialForm({ isOpen, onClose }) {
                   onClick={() => setFormData({ ...formData, rating: star })}
                   onMouseEnter={() => setHoveredRating(star)}
                   onMouseLeave={() => setHoveredRating(0)}
+                  aria-label={`דרג ${star} כוכבים`}
+                  aria-pressed={formData.rating === star}
                   className="transition-transform hover:scale-110"
                 >
                   <Star
@@ -226,6 +228,7 @@ export default function TestimonialForm({ isOpen, onClose }) {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, image_url: '' })}
+                      aria-label="הסר תמונה"
                       className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
                     >
                       <X className="w-3 h-3" />
@@ -262,6 +265,7 @@ export default function TestimonialForm({ isOpen, onClose }) {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, video_url: '' })}
+                      aria-label="הסר וידאו"
                       className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
                     >
                       <X className="w-3 h-3" />
@@ -277,7 +281,7 @@ export default function TestimonialForm({ isOpen, onClose }) {
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="flex-1">
               ביטול
             </Button>
-            <Button type="submit" disabled={isSubmitting || charCount < MIN_CHARS} className="flex-1">
+            <Button type="submit" disabled={isSubmitting || charCount < MIN_CHARS} aria-busy={isSubmitting} className="flex-1">
               {isSubmitting ? 'שולח...' : 'שליחת המלצה'}
             </Button>
           </div>

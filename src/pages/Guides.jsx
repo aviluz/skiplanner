@@ -186,7 +186,7 @@ export default function Guides() {
           country: d.country,
           lat: d.latitude,
           lon: d.longitude,
-          heights: [d.lower_elevation, d.upper_elevation].filter((h) => typeof h === "number" && h > 0)
+          heights: [d.lower_elevation, d.mid_elevation, d.upper_elevation].filter((h) => typeof h === "number" && h > 0)
         }));
       const key = (r) => `${(r.name || "").toLowerCase()}|${r.lat}|${r.lon}`;
       const baseMap = new Map(resortsData.map((r) => [key(r), r]));

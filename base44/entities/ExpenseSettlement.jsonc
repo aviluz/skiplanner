@@ -57,12 +57,6 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "data.from_person": "{{user.full_name}}"
-        },
-        {
-          "data.to_person": "{{user.full_name}}"
-        },
-        {
           "data.shared_with_emails": "{{user.email}}"
         },
         {

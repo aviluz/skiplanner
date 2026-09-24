@@ -219,6 +219,30 @@ export default function AdminPanel() {
     }
   }, []);
 
+  // Reload a single entity type after a CRUD operation (reduces read traffic vs full reload)
+  const reloadEntity = useCallback(async (entityName) => {
+    try {
+      switch (entityName) {
+        case 'SkiDestination': setDestinations((await db.entities.SkiDestination.list("-created_date")).filter(d => d)); break;
+        case 'Equipment': setEquipment((await db.entities.Equipment.list("-created_date")).filter(e => e)); break;
+        case 'SkiSchool': setSkiSchools((await db.entities.SkiSchool.list("-created_date")).filter(s => s)); break;
+        case 'Airport': setAirports((await db.entities.Airport.list("-created_date")).filter(a => a)); break;
+        case 'InsuranceProvider': setInsuranceProviders((await db.entities.InsuranceProvider.list("sort_order")).filter(i => i)); break;
+        case 'AccommodationProvider': setAccommodationProviders((await db.entities.AccommodationProvider.list("-created_date")).filter(a => a)); break;
+        case 'CarRentalProvider': setCarRentalProviders((await db.entities.CarRentalProvider.list("-created_date")).filter(c => c)); break;
+        case 'RecommendedLink': setRecommendedLinks((await db.entities.RecommendedLink.list("-created_date")).filter(l => l)); break;
+        case 'ProductCategory': setProductCategories((await db.entities.ProductCategory.list("order")).filter(c => c)); break;
+        case 'SkiProduct': setSkiProducts((await db.entities.SkiProduct.list("-created_date")).filter(p => p)); break;
+        case 'Feedback': setFeedbackList((await db.entities.Feedback.list("-created_date")).filter(f => f)); break;
+        case 'Review': setReviews((await db.entities.Review.list("-created_date")).filter(r => r)); break;
+        case 'KosherPlace': setKosherPlaces((await db.entities.KosherPlace.list("sort_order")).filter(k => k)); break;
+        default: break;
+      }
+    } catch (error) {
+      console.error(`Error reloading ${entityName}:`, error);
+    }
+  }, []);
+
   // Universal image/video upload handler
   const handleFileUpload = useCallback(async (file, setter) => {
     if (!file) return;
@@ -377,12 +401,12 @@ Return ONLY the JSON object, nothing else.`;
         is_published: !destination.is_published
       });
       sonnerToast.success(destination.is_published ? 'היעד הוסתר' : 'היעד פורסם');
-      await loadGlobalData();
+      await reloadEntity('SkiDestination');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בעדכון סטטוס הפרסום');
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Destinations CRUD
   const handleSaveDestination = useCallback(async (data, isNew = false) => {
@@ -445,12 +469,12 @@ Return ONLY the JSON object, nothing else.`;
       }
       setEditingDestination(null);
       setMissingFields([]);
-      await loadGlobalData();
+      await reloadEntity('SkiDestination');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת היעד: ' + error.message);
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Equipment CRUD
   const handleSaveEquipment = useCallback(async (data, isNew = false) => {
@@ -473,12 +497,12 @@ Return ONLY the JSON object, nothing else.`;
         sonnerToast.success('הציוד עודכן בהצלחה');
       }
       setEditingEquipment(null);
-      await loadGlobalData();
+      await reloadEntity('Equipment');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת הציוד: ' + error.message);
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Ski Schools CRUD
   const handleSaveSchool = useCallback(async (data, isNew = false) => {
@@ -497,12 +521,12 @@ Return ONLY the JSON object, nothing else.`;
         sonnerToast.success('בית הספר עודכן בהצלחה');
       }
       setEditingSchool(null);
-      await loadGlobalData();
+      await reloadEntity('SkiSchool');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת בית הספר: ' + error.message);
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Airports CRUD
   const handleSaveAirport = useCallback(async (data, isNew = false) => {
@@ -531,12 +555,12 @@ Return ONLY the JSON object, nothing else.`;
         sonnerToast.success('שדה התעופה עודכן בהצלחה');
       }
       setEditingAirport(null);
-      await loadGlobalData();
+      await reloadEntity('Airport');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת שדה התעופה: ' + error.message);
     }
-  }, [loadGlobalData, airports]);
+  }, [reloadEntity, airports]);
 
   // Insurance Providers CRUD
   const handleSaveInsurance = useCallback(async (data, isNew = false) => {
@@ -554,12 +578,12 @@ Return ONLY the JSON object, nothing else.`;
         sonnerToast.success('ספק הביטוח עודכן בהצלחה');
       }
       setEditingInsurance(null);
-      await loadGlobalData();
+      await reloadEntity('InsuranceProvider');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת ספק הביטוח: ' + error.message);
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Accommodation Providers CRUD
   const handleSaveAccommodation = useCallback(async (data, isNew = false) => {
@@ -586,12 +610,12 @@ Return ONLY the JSON object, nothing else.`;
         sonnerToast.success('ספק הלינה עודכן בהצלחה');
       }
       setEditingAccommodation(null);
-      await loadGlobalData();
+      await reloadEntity('AccommodationProvider');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת ספק הלינה: ' + error.message);
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Car Rental Providers CRUD
   const handleSaveCarRental = useCallback(async (data, isNew = false) => {
@@ -619,12 +643,12 @@ Return ONLY the JSON object, nothing else.`;
         sonnerToast.success('ספק הרכב עודכן בהצלחה');
       }
       setEditingCarRental(null);
-      await loadGlobalData();
+      await reloadEntity('CarRentalProvider');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת ספק הרכב: ' + error.message);
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Recommended Links CRUD
   const handleSaveLink = useCallback(async (data, isNew = false) => {
@@ -657,12 +681,12 @@ Return ONLY the JSON object, nothing else.`;
         sonnerToast.success('הקישור עודכן בהצלחה');
       }
       setEditingLink(null);
-      await loadGlobalData();
+      await reloadEntity('RecommendedLink');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת הקישור: ' + error.message);
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Product Categories CRUD
   const handleSaveCategory = useCallback(async (data, isNew = false) => {
@@ -682,12 +706,12 @@ Return ONLY the JSON object, nothing else.`;
         sonnerToast.success('הקטגוריה עודכנה בהצלחה');
       }
       setEditingCategory(null);
-      await loadGlobalData();
+      await reloadEntity('ProductCategory');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת הקטגוריה: ' + error.message);
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Products CRUD
   const handleSaveProduct = useCallback(async (data, isNew = false) => {
@@ -729,19 +753,19 @@ Return ONLY the JSON object, nothing else.`;
         sonnerToast.success('המוצר עודכן בהצלחה');
       }
       setEditingProduct(null);
-      await loadGlobalData();
+      await reloadEntity('SkiProduct');
     } catch (error) {
       console.error(error);
       sonnerToast.error('שגיאה בשמירת המוצר: ' + error.message);
     }
-  }, [loadGlobalData]);
+  }, [reloadEntity]);
 
   // Reviews actions
   const handleReviewStatusChange = useCallback(async (review, newStatus) => {
     try {
       await db.entities.Review.update(review.id, { status: newStatus });
       sonnerToast.success(`סטטוס הביקורת עודכן ל: ${newStatus}`);
-      await loadGlobalData();
+      await reloadEntity('Review');
     } catch(e) {
       console.error(e);
       sonnerToast.error("שגיאה בעדכון סטטוס הביקורת");

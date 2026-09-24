@@ -114,15 +114,17 @@ function formatDriveTime(value) {
   return str;
 }
 
-const StarRating = ({ rating, onChange, readonly = false }) => {
+const StarRating = ({ rating, onChange, readonly = false, ariaLabel }) => {
   return (
-    <div className="flex gap-1 shrink-0" dir="ltr">
+    <div className="flex gap-1 shrink-0" dir="ltr" role="group" aria-label={ariaLabel || "דירוג כוכבים"}>
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
           type="button"
           disabled={readonly}
           onClick={() => !readonly && onChange && onChange(star)}
+          aria-label={`${star} כוכבים`}
+          aria-pressed={rating === star}
           className={`${
             readonly ? "cursor-default" : "cursor-pointer"
           } transition-colors`}
@@ -133,6 +135,7 @@ const StarRating = ({ rating, onChange, readonly = false }) => {
                 ? "text-yellow-400 fill-yellow-400"
                 : "text-gray-300"
             }`}
+            aria-hidden="true"
           />
         </button>
       ))}
@@ -452,8 +455,8 @@ export default function SkiDestinationDetail() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+      <div className="flex items-center justify-center h-screen" role="status" aria-busy="true" aria-label="טוען פרטי יעד">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" aria-hidden="true" />
       </div>
     );
   }
@@ -502,6 +505,7 @@ export default function SkiDestinationDetail() {
               muted
               loop
               playsInline
+              aria-label={`סרטון של ${destination.name}`}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -1093,9 +1097,10 @@ export default function SkiDestinationDetail() {
 
                     <div className="space-y-6">
                       <div>
-                        <Label>דירוג כללי *</Label>
+                        <Label id="general-rating-label">דירוג כללי *</Label>
                         <StarRating
                           rating={reviewForm.general_rating}
+                          ariaLabel="דירוג כללי"
                           onChange={(rating) =>
                             setReviewForm({
                               ...reviewForm,
@@ -1107,9 +1112,10 @@ export default function SkiDestinationDetail() {
 
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <Label>דירוג למתחילים (אופציונלי)</Label>
+                          <Label id="beginner-rating-label">דירוג למתחילים (אופציונלי)</Label>
                           <StarRating
                             rating={reviewForm.beginner_rating}
+                            ariaLabel="דירוג למתחילים"
                             onChange={(rating) =>
                               setReviewForm({
                                 ...reviewForm,
@@ -1119,9 +1125,10 @@ export default function SkiDestinationDetail() {
                           />
                         </div>
                         <div>
-                          <Label>דירוג למתקדמים (אופציונלי)</Label>
+                          <Label id="advanced-rating-label">דירוג למתקדמים (אופציונלי)</Label>
                           <StarRating
                             rating={reviewForm.advanced_rating}
+                            ariaLabel="דירוג למתקדמים"
                             onChange={(rating) =>
                               setReviewForm({
                                 ...reviewForm,
@@ -1201,6 +1208,7 @@ export default function SkiDestinationDetail() {
                     <Button
                       type="submit"
                       disabled={submittingReview}
+                      aria-busy={submittingReview}
                       className="w-full mt-6"
                     >
                       {submittingReview ? (

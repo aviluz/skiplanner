@@ -276,7 +276,7 @@ export default function Destinations() {
 
   if (loading) {
     return (
-      <div className="p-4 md:p-8">
+      <div className="p-4 md:p-8" role="status" aria-busy="true" aria-label="טוען יעדים">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -352,17 +352,20 @@ export default function Destinations() {
             <CardContent className="p-4 md:p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
                 <div className="relative lg:col-span-2">
-                  <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                  <Label htmlFor="dest-search" className="sr-only">חפש יעד או מדינה</Label>
+                  <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" aria-hidden="true" />
                   <Input
+                    id="dest-search"
                     placeholder="חפש יעד או מדינה..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    aria-describedby="dest-results-count"
                     className="pr-9"
                   />
                 </div>
 
                 <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                  <SelectTrigger dir="rtl" className="text-right [&>span]:flex-1 [&>span]:text-right [&>svg]:order-first">
+                  <SelectTrigger dir="rtl" aria-label="בחר מדינה" className="text-right [&>span]:flex-1 [&>span]:text-right [&>svg]:order-first">
                     <SelectValue placeholder="בחר מדינה" />
                   </SelectTrigger>
                   <SelectContent>
@@ -374,7 +377,7 @@ export default function Destinations() {
                 </Select>
 
                 <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-                  <SelectTrigger dir="rtl" className="text-right [&>span]:flex-1 [&>span]:text-right [&>svg]:order-first">
+                  <SelectTrigger dir="rtl" aria-label="רמת קושי" className="text-right [&>span]:flex-1 [&>span]:text-right [&>svg]:order-first">
                     <SelectValue placeholder="רמת קושי" />
                   </SelectTrigger>
                   <SelectContent>
@@ -421,9 +424,9 @@ export default function Destinations() {
                     מיין לפי
                   </Label>
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger dir="rtl" className="text-right [&>span]:flex-1 [&>span]:text-right [&>svg]:order-first">
-                      <SelectValue placeholder="מיין לפי" />
-                    </SelectTrigger>
+                     <SelectTrigger dir="rtl" aria-label="מיין לפי" className="text-right [&>span]:flex-1 [&>span]:text-right [&>svg]:order-first">
+                       <SelectValue placeholder="מיין לפי" />
+                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="recommended" className="text-right">מומלץ (ברירת מחדל)</SelectItem>
                       <SelectItem value="size" className="text-right">גודל אתר (מהגדול לקטן)</SelectItem>
@@ -453,7 +456,7 @@ export default function Destinations() {
                       מציג יעדים פתוחים בין {new Date(vacationStart).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} ל-{new Date(vacationEnd).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})}
                     </span>
                   )}
-                  <Badge variant="outline" className="text-slate-600">
+                  <Badge id="dest-results-count" variant="outline" className="text-slate-600" aria-live="polite">
                     {filteredDestinations.length} יעדים נמצאו
                   </Badge>
                 </div>
@@ -495,6 +498,7 @@ export default function Destinations() {
                         muted
                         loop
                         playsInline
+                        aria-label={`סרטון של ${destination.name}`}
                         className="w-full h-full object-cover transition-opacity duration-300"
                       />
                     ) : (
@@ -594,8 +598,8 @@ export default function Destinations() {
                       </Link>
                       {destination.website_url && (
                         <Button variant="outline" size="icon" asChild>
-                          <a href={destination.website_url} target="_blank" rel="noopener noreferrer">
-                            <Mountain className="w-4 h-4" />
+                          <a href={destination.website_url} target="_blank" rel="noopener noreferrer" aria-label={`אתר רשמי של ${destination.name}`}>
+                            <Mountain className="w-4 h-4" aria-hidden="true" />
                           </a>
                         </Button>
                       )}

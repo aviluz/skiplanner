@@ -100,12 +100,6 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "data.payer_name": "{{user.full_name}}"
-        },
-        {
-          "data.beneficiaries": "{{user.full_name}}"
-        },
-        {
           "data.shared_with_emails": "{{user.email}}"
         },
         {

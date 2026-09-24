@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { BookOpen, Search, ArrowRight, Tag, AlertTriangle, RefreshCw } from "lucide-react";
 import SeoHead from "@/components/SeoHead";
 import ArticleCard from "@/components/articles/ArticleCard";
@@ -154,8 +155,10 @@ export default function Articles() {
         {/* Search + filter */}
         <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between mb-8 -mt-4 relative z-10">
           <div className="relative flex-1 md:max-w-md">
-            <Search className="absolute right-3 top-2.5 w-4 h-4 text-slate-400" />
+            <Label htmlFor="articles-search" className="sr-only">חיפוש מאמרים</Label>
+            <Search className="absolute right-3 top-2.5 w-4 h-4 text-slate-400" aria-hidden="true" />
             <Input
+              id="articles-search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={searchPlaceholder}
@@ -166,6 +169,7 @@ export default function Articles() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setActiveCategory("all")}
+                aria-pressed={activeCategory === "all"}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   activeCategory === "all" ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-blue-50 border border-slate-200"
                 }`}
@@ -176,6 +180,7 @@ export default function Articles() {
                 <button
                   key={c.name}
                   onClick={() => setActiveCategory(c.name)}
+                  aria-pressed={activeCategory === c.name}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     activeCategory === c.name ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-blue-50 border border-slate-200"
                   }`}
@@ -189,7 +194,7 @@ export default function Articles() {
 
         {/* States */}
         {displayState === "loading" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="status" aria-busy="true" aria-label="טוען מאמרים">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="bg-white rounded-2xl shadow-md overflow-hidden">
                 <div className="h-44 bg-slate-200 animate-pulse" />

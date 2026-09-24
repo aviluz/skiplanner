@@ -234,7 +234,7 @@ export default function Home() {
               variants={itemVariants}
               className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6"
             >
-              <Mountain className="w-5 h-5 text-white" />
+              <Mountain className="w-5 h-5 text-white" aria-hidden="true" />
               <span className="text-white font-medium">לחסוך זמן, לחסוך כסף | {siteSettings.logoText || "SkiPlanner"} </span>
             </motion.div>
 
@@ -301,7 +301,7 @@ export default function Home() {
                   variants={itemVariants}
                   className="text-center backdrop-blur-sm bg-white/10 rounded-xl p-3 md:p-4"
                 >
-                  <stat.icon className="w-5 md:w-6 h-5 md:h-6 text-blue-300 mx-auto mb-2" />
+                  <stat.icon className="w-5 md:w-6 h-5 md:h-6 text-blue-300 mx-auto mb-2" aria-hidden="true" />
                   <div className="text-xl md:text-2xl font-bold text-white">{stat.number}</div>
                   <div className="text-xs md:text-sm text-blue-200">{stat.label}</div>
                 </motion.div>
@@ -348,15 +348,15 @@ export default function Home() {
 
               <div className="grid md:grid-cols-3 gap-4 md:gap-6 mb-8 text-right">
                 <div className={`flex items-start gap-3 p-4 rounded-xl border ${siteSettings.vipSectionBackground ? 'bg-white/20 backdrop-blur-sm border-white/30' : 'bg-white/60 backdrop-blur-sm border-blue-100'}`}>
-                  <CheckCircle className={`w-6 h-6 shrink-0 mt-0.5 ${siteSettings.vipSectionBackground ? 'text-white' : 'text-blue-600'}`} />
+                  <CheckCircle className={`w-6 h-6 shrink-0 mt-0.5 ${siteSettings.vipSectionBackground ? 'text-white' : 'text-blue-600'}`} aria-hidden="true" />
                   <p className={`font-medium ${siteSettings.vipSectionBackground ? 'text-white/95' : 'text-slate-700'}`}>תכנון אישי מלא לפי הצרכים שלכם</p>
                 </div>
                 <div className={`flex items-start gap-3 p-4 rounded-xl border ${siteSettings.vipSectionBackground ? 'bg-white/20 backdrop-blur-sm border-white/30' : 'bg-white/60 backdrop-blur-sm border-blue-100'}`}>
-                  <CheckCircle className={`w-6 h-6 shrink-0 mt-0.5 ${siteSettings.vipSectionBackground ? 'text-white' : 'text-blue-600'}`} />
+                  <CheckCircle className={`w-6 h-6 shrink-0 mt-0.5 ${siteSettings.vipSectionBackground ? 'text-white' : 'text-blue-600'}`} aria-hidden="true" />
                   <p className={`font-medium ${siteSettings.vipSectionBackground ? 'text-white/95' : 'text-slate-700'}`}>חוסך טעויות, זמן וכאב ראש</p>
                 </div>
                 <div className={`flex items-start gap-3 p-4 rounded-xl border ${siteSettings.vipSectionBackground ? 'bg-white/20 backdrop-blur-sm border-white/30' : 'bg-white/60 backdrop-blur-sm border-blue-100'}`}>
-                  <CheckCircle className={`w-6 h-6 shrink-0 mt-0.5 ${siteSettings.vipSectionBackground ? 'text-white' : 'text-blue-600'}`} />
+                  <CheckCircle className={`w-6 h-6 shrink-0 mt-0.5 ${siteSettings.vipSectionBackground ? 'text-white' : 'text-blue-600'}`} aria-hidden="true" />
                   <p className={`font-medium ${siteSettings.vipSectionBackground ? 'text-white/95' : 'text-slate-700'}`}>ליווי של מומחי סקי מהשלב הראשון</p>
                 </div>
               </div>

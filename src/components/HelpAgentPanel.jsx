@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { agentSDK } from "@/agents";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Bot, Send, Loader2, X, Plane, MountainSnow, Bed } from "lucide-react";
 import MessageBubble from "@/components/agent/MessageBubble";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,49 @@ export default function HelpAgentPanel({ isOpen, onClose, user }) {
     const [isSending, setIsSending] = useState(false);
     const { toast } = useToast();
     const messagesEndRef = useRef(null);
+    const panelRef = useRef(null);
+    const previousFocusRef = useRef(null);
+
+    // Focus trap + Escape to close + restore focus on close
+    useEffect(() => {
+        if (!isOpen) return;
+
+        previousFocusRef.current = document.activeElement;
+
+        const focusables = panelRef.current?.querySelectorAll(
+            'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables && focusables.length > 0) {
+            focusables[0].focus();
+        }
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                onClose();
+                return;
+            }
+            if (e.key !== 'Tab' || !panelRef.current) return;
+            const items = panelRef.current.querySelectorAll(
+                'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])'
+            );
+            if (!items || items.length === 0) return;
+            const first = items[0];
+            const last = items[items.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            previousFocusRef.current?.focus();
+        };
+    }, [isOpen, onClose]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -101,6 +144,10 @@ export default function HelpAgentPanel({ isOpen, onClose, user }) {
 
     return (
         <div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="סוכן העזרה החכם"
             className={cn(
                 "fixed bottom-0 left-0 h-[80vh] max-h-[600px] w-full max-w-[400px] bg-slate-50 border-r border-slate-200 shadow-2xl z-[100] transform transition-transform duration-300 ease-in-out",
                 isOpen ? "translate-x-0" : "-translate-x-full"
@@ -114,7 +161,7 @@ export default function HelpAgentPanel({ isOpen, onClose, user }) {
                         <Bot className="w-6 h-6 text-blue-600" />
                         <h3 className="text-lg font-semibold text-slate-800">סוכן העזרה החכם</h3>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={onClose}>
+                    <Button variant="ghost" size="icon" onClick={onClose} aria-label="סגור פאנל">
                         <X className="w-5 h-5" />
                     </Button>
                 </div>
@@ -158,7 +205,9 @@ export default function HelpAgentPanel({ isOpen, onClose, user }) {
                 {/* Input Area */}
                 <div className="p-4 bg-white border-t">
                     <div className="relative">
+                        <Label htmlFor="help-agent-input" className="sr-only">הודעה לסוכן</Label>
                         <Textarea
+                            id="help-agent-input"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyPress={handleKeyPress}
@@ -172,6 +221,7 @@ export default function HelpAgentPanel({ isOpen, onClose, user }) {
                             className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7"
                             onClick={() => handleSendMessage()}
                             disabled={!input.trim() || isSending}
+                            aria-label="שלח הודעה"
                         >
                             <Send className="w-4 h-4" />
                         </Button>

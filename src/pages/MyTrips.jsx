@@ -161,8 +161,8 @@ export default function MyTrips() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 p-4 md:p-8 flex items-center justify-center" dir="rtl">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <div className="text-center" role="status" aria-busy="true" aria-label="טוען את הטיולים שלך">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4" aria-hidden="true"></div>
           <p className="text-slate-600">טוען את הטיולים שלך...</p>
         </div>
       </div>

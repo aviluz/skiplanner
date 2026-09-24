@@ -978,9 +978,11 @@ export default function PlanTrip() {
                       id="trip-name" 
                       value={tripData.trip_name} 
                       onChange={(e) => handleInputChange('trip_name', e.target.value)} 
+                      aria-required="true"
+                      aria-describedby={fieldErrors.trip_name ? "trip-name-error" : undefined}
                       className={`h-12 text-base transition-all ${fieldErrors.trip_name ? 'border-red-500' : ''}`}
                     />
-                    {fieldErrors.trip_name && <p className="text-red-500 text-sm mt-1">{fieldErrors.trip_name}</p>}
+                    {fieldErrors.trip_name && <p id="trip-name-error" role="alert" className="text-red-500 text-sm mt-1">{fieldErrors.trip_name}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1152,13 +1154,13 @@ export default function PlanTrip() {
                     )}
                     <p className="text-xs text-slate-500 mt-2 p-2 bg-blue-50/60 rounded-md border border-blue-100 transition-all">שימו לב לתאריכים לפני סוף נובמבר, גלישה אפשרית בעיקר בקרחונים ספציפיים כמו הינטרטוקס או צרמט. אחרי אפריל, רוב האתרים נסגרים. מומלץ לבדוק את תאריכי הסגירה של היעד.</p>
                     {(fieldErrors.dates || fieldErrors.departure_month) && (
-                      <p className="text-red-500 text-sm mt-2">{fieldErrors.dates || fieldErrors.departure_month}</p>
+                      <p role="alert" className="text-red-500 text-sm mt-2">{fieldErrors.dates || fieldErrors.departure_month}</p>
                     )}
                 </div>
 
                 <div ref={destinationContainerRef}>
                   {renderDestinationSelector()}
-                  {fieldErrors.destination && <p className="text-red-500 text-sm mt-2">{fieldErrors.destination}</p>}
+                  {fieldErrors.destination && <p role="alert" className="text-red-500 text-sm mt-2">{fieldErrors.destination}</p>}
                 </div>
 
                 {selectedDestination && (
@@ -1186,7 +1188,7 @@ export default function PlanTrip() {
                                />
                              </div>
                             {distanceInfo && <div className="mt-2 transition-all">{distanceInfo}</div>}
-                            {fieldErrors.arrival_airport && <p className="text-red-500 text-sm mt-2">{fieldErrors.arrival_airport}</p>}
+                            {fieldErrors.arrival_airport && <p role="alert" className="text-red-500 text-sm mt-2">{fieldErrors.arrival_airport}</p>}
                         </div>
                     </div>
                 )}
@@ -1197,6 +1199,7 @@ export default function PlanTrip() {
                   size="default" 
                   onClick={handleButtonClick}
                   disabled={loading}
+                  aria-busy={loading}
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold px-6 py-3 text-base shadow-xl hover:shadow-2xl transition-all duration-300"
                 >
                     {loading ? <RefreshCw className="w-5 h-5 mr-2 animate-spin transition-all" /> : <CheckCircle className="w-5 h-5 mr-2 transition-all" />}

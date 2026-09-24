@@ -3,6 +3,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -75,7 +76,9 @@ export default function FeedbackPage() {
             </CardHeader>
             <form onSubmit={handleSubmit}>
               <CardContent>
+                <Label htmlFor="feedback-content" className="sr-only">תוכן המשוב</Label>
                 <Textarea
+                  id="feedback-content"
                   placeholder="כתוב את המשוב שלך כאן..."
                   className="min-h-[150px] text-base"
                   value={content}
@@ -88,7 +91,7 @@ export default function FeedbackPage() {
                 )}
               </CardContent>
               <CardFooter>
-                <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                <Button type="submit" size="lg" className="w-full" disabled={loading} aria-busy={loading}>
                   {loading ? 'שולח...' : !user ? (
                     <><LogIn className="w-4 h-4 ml-2" />התחבר ושלח משוב</>
                   ) : 'שלח משוב'}

@@ -126,40 +126,44 @@
     <meta name="twitter:description" content="Build useful apps, fast with Base44." />
     <meta name="twitter:image" content="https://app.base44.com/link_preview_v3.png" />
     <meta name="twitter:image:alt" content="Base44 link preview" />
-    <script type="module" crossorigin src="/static/index-BXqI9Sql.js"></script>
-    <link rel="modulepreload" crossorigin href="/static/rolldown-runtime-CMxvf4Kt.js">
-    <link rel="modulepreload" crossorigin href="/static/preload-helper-zJ_50EbN.js">
+    <script type="module" crossorigin src="/static/index-DeiPBNRc.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/rolldown-runtime-C0FnF6B9.js">
     <link rel="modulepreload" crossorigin href="/static/runtime-QtgwY_nV.js">
-    <link rel="modulepreload" crossorigin href="/static/backend-BnaCfGT2.js">
-    <link rel="modulepreload" crossorigin href="/static/errorReporting-Lh7VQvaO.js">
-    <link rel="modulepreload" crossorigin href="/static/i18n-D_vwNZiD.js">
-    <link rel="modulepreload" crossorigin href="/static/mixpanelUtils-BoCP0Kkf.js">
-    <link rel="modulepreload" crossorigin href="/static/vendor-react-C7G2OP9Q.js">
-    <link rel="modulepreload" crossorigin href="/static/vendor-data-DxfHEpz5.js">
-    <link rel="modulepreload" crossorigin href="/static/vendor-utils-B-n_iXVd.js">
-    <link rel="modulepreload" crossorigin href="/static/axiosClient-rGiw2fsv.js">
-    <link rel="modulepreload" crossorigin href="/static/base-BwnZNdUq.js">
-    <link rel="modulepreload" crossorigin href="/static/AuthAPI-mckBk0VU.js">
-    <link rel="modulepreload" crossorigin href="/static/buildSsoRedirectUrl-VB-0OgWl.js">
+    <link rel="modulepreload" crossorigin href="/static/backend-Bdnuuxew.js">
+    <link rel="modulepreload" crossorigin href="/static/preload-helper-BZ1Pz5am.js">
+    <link rel="modulepreload" crossorigin href="/static/errorReporting-DXU-hfDf.js">
+    <link rel="modulepreload" crossorigin href="/static/i18n-DoNBrf1z.js">
+    <link rel="modulepreload" crossorigin href="/static/vendor-react-BBBlwLJ5.js">
+    <link rel="modulepreload" crossorigin href="/static/vendor-data-duqHV315.js">
+    <link rel="modulepreload" crossorigin href="/static/vendor-utils-C8Ev1Z53.js">
+    <link rel="modulepreload" crossorigin href="/static/mixpanelUtils-DW6rdzp7.js">
+    <link rel="modulepreload" crossorigin href="/static/bridge-Cq_Szqk4.js">
+    <link rel="modulepreload" crossorigin href="/static/axiosClient-Bm4gNJeV.js">
     <link rel="modulepreload" crossorigin href="/static/domainValidation-FMKryCR2.js">
-    <link rel="modulepreload" crossorigin href="/static/useDesignSystem-DT2v4gC5.js">
-    <link rel="modulepreload" crossorigin href="/static/AuthContext-BFrv2PfP.js">
-    <link rel="modulepreload" crossorigin href="/static/WorkspaceAPI-Cpp3ct5_.js">
-    <link rel="modulepreload" crossorigin href="/static/useWorkspaceUnlockState-CC8XdN-l.js">
-    <link rel="modulepreload" crossorigin href="/static/useHideNativeBottomTabs-BHxaBg4X.js">
-    <link rel="modulepreload" crossorigin href="/static/native-mobile-app-CPXZ-CQx.js">
-    <link rel="modulepreload" crossorigin href="/static/WorkspaceContext-Jrl6voIZ.js">
-    <link rel="modulepreload" crossorigin href="/static/prop-types-CZe_Cxea.js">
-    <link rel="modulepreload" crossorigin href="/static/use-mobile-D691mCYJ.js">
-    <link rel="modulepreload" crossorigin href="/static/usePlatform-Wd-Yy7bY.js">
+    <link rel="modulepreload" crossorigin href="/static/vendor-ui-JTY9N5IC.js">
+    <link rel="modulepreload" crossorigin href="/static/base-DtNIZxsC.js">
+    <link rel="modulepreload" crossorigin href="/static/AuthAPI-Dxb-JWAu.js">
+    <link rel="modulepreload" crossorigin href="/static/useDesignSystem-Bg4kLwYX.js">
+    <link rel="modulepreload" crossorigin href="/static/AuthContext-lpZYiV--.js">
+    <link rel="modulepreload" crossorigin href="/static/dist-XEn2s_wS.js">
+    <link rel="modulepreload" crossorigin href="/static/create-zustand-store-1E2bcsHT.js">
+    <link rel="modulepreload" crossorigin href="/static/persist-to-storage-D9RzA363.js">
     <link rel="modulepreload" crossorigin href="/static/actions.middleware-D_eRWZoy.js">
-    <link rel="modulepreload" crossorigin href="/static/create-zustand-store-H5Jpndxx.js">
-    <link rel="modulepreload" crossorigin href="/static/persist-to-storage-DT1vULBt.js">
-    <link rel="modulepreload" crossorigin href="/static/react-Zn5I27iM.js">
-    <link rel="modulepreload" crossorigin href="/static/useFeatureFlags-B09fvC-U.js">
-    <link rel="modulepreload" crossorigin href="/static/vendor-ui-DJPZ_6DD.js">
-    <link rel="modulepreload" crossorigin href="/static/dist-9e-S8A9S.js">
-    <link rel="stylesheet" crossorigin href="/static/index-CQU-u5lq.css">
+    <link rel="modulepreload" crossorigin href="/static/useHideNativeBottomTabs-BMpkil3w.js">
+    <link rel="modulepreload" crossorigin href="/static/native-mobile-app-DrRzSpEh.js">
+    <link rel="modulepreload" crossorigin href="/static/WorkspaceAPI-DXT9sEQ5.js">
+    <link rel="modulepreload" crossorigin href="/static/useWorkspaceUnlockState-CC8XdN-l.js">
+    <link rel="modulepreload" crossorigin href="/static/WorkspaceContext-BWLboZqR.js">
+    <link rel="modulepreload" crossorigin href="/static/prop-types-D9WxI36-.js">
+    <link rel="modulepreload" crossorigin href="/static/esm-_aV1v5pX.js">
+    <link rel="modulepreload" crossorigin href="/static/use-mobile-vL63Zcnb.js">
+    <link rel="modulepreload" crossorigin href="/static/usePlatform-D235SiRA.js">
+    <link rel="modulepreload" crossorigin href="/static/react-BPKg3RBi.js">
+    <link rel="modulepreload" crossorigin href="/static/useFeatureFlags-D6RnGfCo.js">
+    <link rel="modulepreload" crossorigin href="/static/use-toast-DWiTrhxS.js">
+    <link rel="modulepreload" crossorigin href="/static/utils-CrD3uvwO.js">
+    <link rel="modulepreload" crossorigin href="/static/toast-iBrkeFt5.js">
+    <link rel="stylesheet" crossorigin href="/static/index-rq4KK1jl.css">
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

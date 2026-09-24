@@ -31,8 +31,8 @@ export default function Insurances() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6 flex items-center justify-center" role="status" aria-busy="true" aria-label="טוען ספקי ביטוח">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600" aria-hidden="true"></div>
       </div>
     );
   }
